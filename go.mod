@@ -9,6 +9,7 @@ require (
 	github.com/garyburd/redigo v1.6.4
 	github.com/nats-io/nuid v1.0.1
 	github.com/spf13/viper v1.15.0
+	github.com/xihui-forever/goon v0.0.0-20230118095059-2a25cc6bb51f
 	google.golang.org/genproto v0.0.0-20230127162408-596548ed4efa
 	gorm.io/gorm v1.24.3
 	gorm.io/plugin/soft_delete v1.2.0
