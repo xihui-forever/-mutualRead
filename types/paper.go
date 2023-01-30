@@ -14,11 +14,12 @@ type ModelPaper struct {
 	UpdatedAt uint32                `json:"updated_at,omitempty" gorm:"autoUpdateTime;<-;column:updated_at;not null"`
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null"`
 
-	Name     string        `json:"name,omitempty" gorm:"column:name;not null"`
-	Imag     image.Derived `json:"imag,omitempty" gorm:"column:imag;not null"`
-	Grade    uint32        `json:"grade,omitempty" gorm:"column:grade;not null"`
-	Examiner uint64        `json:"examiner,omitempty" gorm:"column:examiner;not null"`
-	Reviewer uint64        `json:"reviewer,omitempty" gorm:"column:reviewer;not null"`
+	Name         string        `json:"name,omitempty" gorm:"column:name;not null"`
+	Imag         image.Derived `json:"imag,omitempty" gorm:"column:imag;not null"`
+	Grade        uint32        `json:"grade,omitempty" gorm:"column:grade;not null"`
+	Examiner     uint64        `json:"examiner,omitempty" gorm:"column:examiner;not null"`
+	Reviewer     uint64        `json:"reviewer,omitempty" gorm:"column:reviewer;not null"`
+	ChargePerson uint64        `json:"chargePerson,omitempty" gorm:"column:chargePerson;not null"`
 }
 
 func (m *ModelPaper) Scan(value interface{}) error {

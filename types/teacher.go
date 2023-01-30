@@ -13,7 +13,7 @@ type ModelTeacher struct {
 	UpdatedAt uint32                `json:"updated_at,omitempty" gorm:"autoUpdateTime;<-;column:updated_at;not null"`
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_teacher_teacherId,unique"`
 
-	TeacherId string `json:"teacherId,omitempty" gorm:"column:teacherId;not null;index:idx_teacher_teacherId,unique"`
+	TeacherId uint64 `json:"teacherId,omitempty" gorm:"column:teacherId;not null;index:idx_teacher_teacherId,unique"`
 	Password  string `json:"password,omitempty" gorm:"column:password;not null"`
 	Name      string `json:"name,omitempty" gorm:"column:name;not null"`
 	Email     string `json:"email,omitempty" gorm:"column:email;not null"`

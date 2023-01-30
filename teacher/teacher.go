@@ -5,11 +5,11 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
-	"github.com/xihui-forever/goon/types"
+	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
 
-func AddTeacher(teacherId string, pwd string, name string, email string) (*types.ModelTeacher, error) {
+func AddTeacher(teacherId uint64, pwd string, name string, email string) (*types.ModelTeacher, error) {
 	a := types.ModelTeacher{
 		TeacherId: teacherId,
 		Password:  Encrypt(pwd),
@@ -29,7 +29,7 @@ func AddTeacher(teacherId string, pwd string, name string, email string) (*types
 	return &a, nil
 }
 
-func GetTeacher(teacherId string) (*types.ModelTeacher, error) {
+func GetTeacher(teacherId uint64) (*types.ModelTeacher, error) {
 	var a types.ModelTeacher
 	err := db.Where("teacherId = ?", teacherId).First(&a).Error
 	if err != nil {
@@ -42,7 +42,7 @@ func GetTeacher(teacherId string) (*types.ModelTeacher, error) {
 	return &a, nil
 }
 
-func ChangePassword(teacherId string, oldPwd, newPwd string) error {
+func ChangePassword(teacherId uint64, oldPwd, newPwd string) error {
 	if newPwd == "" {
 		return ErrorNewPwdEmpty
 	}
@@ -51,6 +51,10 @@ func ChangePassword(teacherId string, oldPwd, newPwd string) error {
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
+	}
+
+	if a == nil {
+		return ErrTeacherNotExist
 	}
 
 	if a.Password != Encrypt(oldPwd) {
@@ -71,16 +75,13 @@ func ChangePassword(teacherId string, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeInfo(teacherId string, name string, email string) error {
+func ChangeInfo(teacherId uint64, name string, email string) error {
 	a, err := GetTeacher(teacherId)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
 	}
 
-	if a == nil {
-		return ErrTeacherNotExist
-	}
 	if name == "" || email == "" {
 		return ErrTeacherNameOrEmailEmpty
 	}
