@@ -5,9 +5,35 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
+	"github.com/xihui-forever/mutualRead/login"
+	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
+
+func init() {
+	permissions := []string{"GetTeacher"}
+	err := role.AddRole("admin", permissions)
+	if err != nil {
+		return
+	}
+
+	login.LoginHandlerMap[login.LoginTypeAdmin] = func(username interface{}, password string) (uint64, error) {
+		data, err := GetAdmin(utils.ToString(username))
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return 0, err
+		}
+
+		err = CheckPassword(password, data.Password)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return 0, err
+		}
+
+		return data.Id, nil
+	}
+}
 
 func AddAdmin(username string, pwd string) (*types.ModelAdmin, error) {
 	a := types.ModelAdmin{
@@ -38,6 +64,13 @@ func GetAdmin(username string) (*types.ModelAdmin, error) {
 		return nil, err
 	}
 	return &a, nil
+}
+
+func CheckPassword(input string, password string) error {
+	if Encrypt(input) != password {
+		return ErrPasswordWrong
+	}
+	return nil
 }
 
 func ChangePassword(username string, oldPwd, newPwd string) error {

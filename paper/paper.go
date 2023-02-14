@@ -3,10 +3,15 @@ package paper
 import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
+	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/types"
 	"google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/image"
 	"gorm.io/gorm"
 )
+
+func init() {
+	role.AddRole("admin", AddPaper)
+}
 
 func AddPaper(name string, imag image.Derived, grade uint32, examiner uint64, reviewer uint64, chargePerson uint64) (*types.ModelPaper, error) {
 	a := types.ModelPaper{

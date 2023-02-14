@@ -35,20 +35,3 @@ func (m *ModelAdmin) Value() (driver.Value, error) {
 func (m *ModelAdmin) TableName() string {
 	return "goon_admin"
 }
-
-type (
-	AdminLoginReq struct {
-		Username string `json:"username,omitempty" form:"username" binding:"required"`
-		Password string `json:"password,omitempty" form:"password" binding:"required"`
-	}
-
-	AdminLoginRsp struct {
-		Token  string `json:"token,omitempty"`
-		Expire uint32 `json:"expire,omitempty"`
-	}
-
-	AdminSession struct {
-		Id       uint64 `json:"id,omitempty"`
-		Username string `json:"username,omitempty"`
-	}
-)

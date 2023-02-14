@@ -2,12 +2,11 @@ module github.com/xihui-forever/mutualRead
 
 go 1.19
 
+replace github.com/xihui-forever/goon => ../goon
+
 require (
-	github.com/bytedance/sonic v1.7.0
 	github.com/darabuchi/log v0.0.0-20230125075412-100a40edc2a0
 	github.com/darabuchi/utils v0.0.0-20230118065253-b2a05930aebf
-	github.com/garyburd/redigo v1.6.4
-	github.com/nats-io/nuid v1.0.1
 	github.com/spf13/viper v1.15.0
 	github.com/xihui-forever/goon v0.0.0-20230118095059-2a25cc6bb51f
 	google.golang.org/genproto v0.0.0-20230127162408-596548ed4efa
@@ -21,8 +20,10 @@ require (
 	github.com/FZambia/go-sentinel v0.0.0-20171204085413-76bd05e8e22f // indirect
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.33.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/bytedance/sonic v1.7.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/garyburd/redigo v1.6.4 // indirect
 	github.com/glebarez/go-sqlite v1.19.2 // indirect
 	github.com/glebarez/sqlite v1.5.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
@@ -64,6 +65,7 @@ require (
 	github.com/mcuadros/go-defaults v1.2.0 // indirect
 	github.com/microsoft/go-mssqldb v0.17.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/petermattis/goid v0.0.0-20221018141743-354ef7f2fd21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
