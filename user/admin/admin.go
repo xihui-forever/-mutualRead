@@ -53,6 +53,23 @@ func AddAdmin(username string, pwd string) (*types.ModelAdmin, error) {
 	return &a, nil
 }
 
+func RemoveAdmin(username string) error {
+	var a types.ModelAdmin
+	result := db.Where("username = ?", username).Delete(&a)
+	err := result.Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return ErrAdminNotExist
+		}
+		log.Errorf("err:%v", err)
+		return err
+	}
+	if result.RowsAffected == 0 {
+		return ErrAdminRemoveFailed
+	}
+	return nil
+}
+
 func GetAdmin(username string) (*types.ModelAdmin, error) {
 	var a types.ModelAdmin
 	err := db.Where("username = ?", username).First(&a).Error

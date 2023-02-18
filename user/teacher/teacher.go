@@ -48,6 +48,68 @@ func AddTeacher(teacherId uint64, pwd string, name string, email string) (*types
 	return &a, nil
 }
 
+func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
+	var count int64 = 0
+	var err error = nil
+	for _, value := range teachers {
+		result := db.Create(&value)
+		err = result.Error
+		c := result.RowsAffected
+		if err != nil {
+			if types.IsUniqueErr(err) {
+				c = 0
+				err = ErrTeacherExist
+			}
+			log.Errorf("err:%v", err)
+			return 0, err
+		}
+		count += c
+	}
+	return count, err
+}
+
+func RemoveTeacher(teacherId uint64) (int64, error) {
+	var a types.ModelTeacher
+	result := db.Where("teacherId = ?", teacherId).Delete(&a)
+	err := result.Error
+	count := result.RowsAffected
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return 0, ErrTeacherNotExist
+		}
+		log.Errorf("err:%v", err)
+		return 0, err
+	}
+	if count == 0 {
+		return 0, ErrTeacherRemoveFailed
+	}
+	return count, nil
+}
+
+func RemoveTeachers(teachers []uint64) (int64, error) {
+	var count int64 = 0
+	for _, value := range teachers {
+		c, err := RemoveTeacher(value)
+		count += c
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return count, err
+		}
+	}
+	return count, nil
+}
+
+func GetTeachersAll() ([]*types.ModelTeacher, error) {
+	var a []*types.ModelTeacher
+	result := db.Find(&a)
+	var err = result.Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+	return a, nil
+}
+
 func GetTeacher(teacherId uint64) (*types.ModelTeacher, error) {
 	var a types.ModelTeacher
 	err := db.Where("teacherId = ?", teacherId).First(&a).Error
@@ -60,6 +122,7 @@ func GetTeacher(teacherId uint64) (*types.ModelTeacher, error) {
 	}
 	return &a, nil
 }
+
 func CheckPassword(input string, password string) error {
 	if Encrypt(input) != password {
 		return ErrPasswordWrong
@@ -100,19 +163,19 @@ func ChangePassword(teacherId uint64, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeInfo(teacherId uint64, name string, email string) error {
+func ChangeEmail(teacherId uint64, email string) error {
 	a, err := GetTeacher(teacherId)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
 	}
 
-	if name == "" || email == "" {
-		return ErrTeacherNameOrEmailEmpty
+	if email == "" {
+		return ErrEmailEmpty
 	}
 
-	if a.Name == name && a.Email == email {
-		return ErrorNoChange
+	if a.Email == email {
+		return ErrorEmailNoChange
 	}
 
 	if a.Email != email {
@@ -123,18 +186,7 @@ func ChangeInfo(teacherId uint64, name string, email string) error {
 			return err
 		}
 		if res.RowsAffected == 0 {
-			return ErrInfoChangeFailed
-		}
-	}
-	if a.Name != name {
-		res := db.Model(&types.ModelTeacher{}).Where("id = ?", a.Id).Update("name", name)
-		err = res.Error
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return err
-		}
-		if res.RowsAffected == 0 {
-			return ErrInfoChangeFailed
+			return ErrEmailChangeFailed
 		}
 	}
 

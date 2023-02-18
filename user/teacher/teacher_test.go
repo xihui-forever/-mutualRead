@@ -61,7 +61,7 @@ func TestChangeInfo(t *testing.T) {
 		return
 	}
 
-	err = ChangeInfo(9112019111, "laoshi", "123@123.com")
+	err = ChangeEmail(9112019111, "123@123.com")
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return

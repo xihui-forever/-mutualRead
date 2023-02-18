@@ -3,11 +3,11 @@ package login
 import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/xtime"
-	"github.com/xihui-forever/goon/session"
+	"github.com/xihui-forever/goon/middleware/session"
 	"time"
 )
 
-var LoginHandlerMap = map[int32]func(username interface{}, password string) (uint64, error){}
+var LoginHandlerMap = map[int]func(username interface{}, password string) (uint64, error){}
 
 const (
 	LoginTypeAdmin = iota + 1
@@ -17,7 +17,7 @@ const (
 
 type (
 	LoginReq struct {
-		Logintype int32       `json:"logintype,omitempty"`
+		Logintype int         `json:"logintype,omitempty"`
 		Username  interface{} `json:"username,omitempty"`
 		Password  string      `json:"password,omitempty"`
 	}
@@ -26,7 +26,7 @@ type (
 		Expire time.Duration `json:"expire,omitempty"`
 	}
 	LoginSession struct {
-		role int32  `json:"role,omitempty"`
+		role int    `json:"role,omitempty"`
 		Id   uint64 `json:"id,omitempty"`
 	}
 )

@@ -3,12 +3,13 @@ package teacher
 import "errors"
 
 var (
-	ErrTeacherExist            = errors.New("Teacher already exists")
-	ErrTeacherNotExist         = errors.New("Teacher does not exist")
-	ErrorNewPwdEmpty           = errors.New("New password is null")
-	ErrPasswordWrong           = errors.New("Password is wrong")
-	ErrPasswordChangeFailed    = errors.New("Password change failed")
-	ErrInfoChangeFailed        = errors.New("Info change failed")
-	ErrorNoChange              = errors.New("New Info equals existing info")
-	ErrTeacherNameOrEmailEmpty = errors.New("Teacher name or email must be not null")
+	ErrTeacherExist         = errors.New("teacher already exists")
+	ErrTeacherNotExist      = errors.New("teacher does not exist")
+	ErrTeacherRemoveFailed  = errors.New("teacher remove failed")
+	ErrorNewPwdEmpty        = errors.New("new password is null")
+	ErrPasswordWrong        = errors.New("password is wrong")
+	ErrPasswordChangeFailed = errors.New("password change failed")
+	ErrEmailChangeFailed    = errors.New("email change failed")
+	ErrorEmailNoChange      = errors.New("new Email equals existing info")
+	ErrEmailEmpty           = errors.New("teacher email must be not null")
 )
