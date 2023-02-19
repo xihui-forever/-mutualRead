@@ -50,23 +50,20 @@ func AddStudent(studentId uint64, pwd string, name string, email string) (*types
 
 func AddStudents(students []types.ModelStudent) (int64, error) {
 	var count int64 = 0
-	var err error = nil
+	var error error = nil
 	for _, value := range students {
 		result := db.Create(&value)
-		err = result.Error
-		c := result.RowsAffected
+		err := result.Error
 		if err != nil {
 			if types.IsUniqueErr(err) {
-				c = 0
-				err = ErrStudentExist
-			} else {
-				log.Errorf("err:%v", err)
-				return count, err
+				error = ErrStudentExist
 			}
+			log.Errorf("err:%v", err)
+			return 0, err
 		}
-		count += c
+		count += result.RowsAffected
 	}
-	return count, err
+	return count, error
 }
 
 func RemoveStudent(studentId uint64) (int64, error) {

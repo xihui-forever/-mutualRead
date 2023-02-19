@@ -6,18 +6,11 @@ import (
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
 	"github.com/xihui-forever/mutualRead/login"
-	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
 
 func init() {
-	permissions := []string{"GetTeacher"}
-	err := role.AddRole("admin", permissions)
-	if err != nil {
-		return
-	}
-
 	login.LoginHandlerMap[login.LoginTypeAdmin] = func(username interface{}, password string) (uint64, error) {
 		data, err := GetAdmin(utils.ToString(username))
 		if err != nil {
