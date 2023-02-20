@@ -33,5 +33,5 @@ func (m *ModelAdmin) Value() (driver.Value, error) {
 }
 
 func (m *ModelAdmin) TableName() string {
-	return "goon_admin"
+	return "mutual_read_admin"
 }

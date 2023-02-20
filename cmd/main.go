@@ -4,9 +4,9 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
 	"github.com/spf13/viper"
-	"github.com/xihui-forever/goon/handler"
-	"github.com/xihui-forever/goon/session"
-	"github.com/xihui-forever/goon/storage/redis"
+	"github.com/xihui-forever/goon"
+	"github.com/xihui-forever/goon/middleware/session"
+	"github.com/xihui-forever/goon/middleware/storage/redis"
 	"github.com/xihui-forever/mutualRead/config"
 	"github.com/xihui-forever/mutualRead/login"
 	"github.com/xihui-forever/mutualRead/types"
@@ -27,7 +27,7 @@ func main() {
 		return
 	}
 
-	mux := handler.NewHandler()
+	mux := goon.New()
 	sess := session.New(redis.New(&redis.RedisConfig{
 		Addr:     "127.0.0.1:6379",
 		Password: "",

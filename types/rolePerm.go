@@ -11,9 +11,9 @@ type ModelRolePerm struct {
 
 	CreatedAt uint32                `json:"created_at,omitempty" gorm:"autoCreateTime;<-:create;column:created_at;not null"`
 	UpdatedAt uint32                `json:"updated_at,omitempty" gorm:"autoUpdateTime;<-;column:updated_at;not null"`
-	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_rolePerm_role,unique"`
+	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_roleperm_role,unique"`
 
-	Role       string `json:"role,omitempty" gorm:"column:role;not null;index:idx_rolePerm_role,unique"`
+	Role       string `json:"role,omitempty" gorm:"column:role;not null;index:idx_roleperm_role,unique"`
 	Permission string `json:"permission,omitempty" gorm:"column:permission;not null"`
 }
 
@@ -26,5 +26,5 @@ func (m *ModelRolePerm) Value() (driver.Value, error) {
 }
 
 func (m *ModelRolePerm) TableName() string {
-	return "goon_roleMap"
+	return "mutual_read_roleperm"
 }

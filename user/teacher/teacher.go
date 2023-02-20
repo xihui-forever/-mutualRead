@@ -51,17 +51,25 @@ func AddTeacher(teacherId uint64, pwd string, name string, email string) (*types
 func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
 	var count int64 = 0
 	var error error = nil
+	var a types.ModelTeacher
 	for _, value := range teachers {
-		result := db.Create(&value)
-		err := result.Error
+		_, err := GetTeacher(value.TeacherId)
 		if err != nil {
-			if types.IsUniqueErr(err) {
+			if err == gorm.ErrRecordNotFound {
 				error = ErrTeacherExist
+				count += 0
+			} else {
+				log.Errorf("err:%v", err)
+				return count, err
 			}
-			log.Errorf("err:%v", err)
-			return 0, err
+		} else {
+			result := db.Create(&a)
+			if result.Error != nil {
+				log.Errorf("err:%v", result.Error)
+				return count, result.Error
+			}
+			count += result.RowsAffected
 		}
-		count += result.RowsAffected
 	}
 	return count, error
 }
@@ -97,15 +105,15 @@ func RemoveTeachers(teachers []uint64) (int64, error) {
 	return count, nil
 }
 
-func GetTeachersAll() ([]*types.ModelTeacher, error) {
-	var a []*types.ModelTeacher
+func GetTeachersAll() (*[]types.ModelTeacher, error) {
+	var a []types.ModelTeacher
 	result := db.Find(&a)
 	var err = result.Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
-	return a, nil
+	return &a, nil
 }
 
 func GetTeacher(teacherId uint64) (*types.ModelTeacher, error) {

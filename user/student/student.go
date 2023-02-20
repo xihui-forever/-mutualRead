@@ -51,17 +51,25 @@ func AddStudent(studentId uint64, pwd string, name string, email string) (*types
 func AddStudents(students []types.ModelStudent) (int64, error) {
 	var count int64 = 0
 	var error error = nil
+	var a types.ModelStudent
 	for _, value := range students {
-		result := db.Create(&value)
-		err := result.Error
+		_, err := GetStudent(value.StudentId)
 		if err != nil {
-			if types.IsUniqueErr(err) {
+			if err == gorm.ErrRecordNotFound {
 				error = ErrStudentExist
+				count += 0
+			} else {
+				log.Errorf("err:%v", err)
+				return count, err
 			}
-			log.Errorf("err:%v", err)
-			return 0, err
+		} else {
+			result := db.Create(&a)
+			if result.Error != nil {
+				log.Errorf("err:%v", result.Error)
+				return count, result.Error
+			}
+			count += result.RowsAffected
 		}
-		count += result.RowsAffected
 	}
 	return count, error
 }
@@ -97,15 +105,15 @@ func RemoveStudents(students []uint64) (int64, error) {
 	return count, nil
 }
 
-func GetStudentsAll() ([]*types.ModelStudent, error) {
-	var a []*types.ModelStudent
+func GetStudentsAll() (*[]types.ModelStudent, error) {
+	var a []types.ModelStudent
 	result := db.Find(&a)
 	var err = result.Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
-	return a, nil
+	return &a, nil
 }
 
 func GetStudent(studentId uint64) (*types.ModelStudent, error) {
