@@ -28,15 +28,8 @@ func init() {
 	}
 }
 
-func AddStudent(studentId uint64, pwd string, name string, email string) (*types.ModelStudent, error) {
-	a := types.ModelStudent{
-		StudentId: studentId,
-		Password:  Encrypt(pwd),
-		Name:      name,
-		Email:     email,
-	}
-
-	err := db.Create(&a).Error
+func AddStudent(student types.ModelStudent) (*types.ModelStudent, error) {
+	err := db.Create(&student).Error
 	if err != nil {
 		if types.IsUniqueErr(err) {
 			return nil, ErrStudentExist
@@ -45,7 +38,7 @@ func AddStudent(studentId uint64, pwd string, name string, email string) (*types
 		return nil, err
 	}
 
-	return &a, nil
+	return &student, nil
 }
 
 func AddStudents(students []types.ModelStudent) (int64, error) {

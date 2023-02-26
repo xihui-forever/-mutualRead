@@ -21,13 +21,19 @@ func TestAddTeacher(t *testing.T) {
 		return
 	}
 
-	a, err := AddTeacher(9112019111, "123456", "老师", "1234567890@123.com")
+	a := types.ModelTeacher{
+		TeacherId: 9112019111,
+		Password:  "123456",
+		Name:      "老师",
+		Email:     "1234567890@123.com",
+	}
+	teacher, err := AddTeacher(a)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
 	}
 
-	t.Log(a)
+	t.Log(teacher)
 }
 
 func TestChangePassword(t *testing.T) {

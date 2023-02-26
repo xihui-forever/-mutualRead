@@ -1,9 +1,11 @@
 package appeal
 
 import (
+	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
 	"github.com/spf13/viper"
 	"github.com/xihui-forever/mutualRead/config"
+	"github.com/xihui-forever/mutualRead/paper"
 	"github.com/xihui-forever/mutualRead/types"
 	"testing"
 )
@@ -21,33 +23,28 @@ func TestAddAppeal(t *testing.T) {
 		return
 	}
 
-	a, err := AddAppeal(1)
+	var p *types.ModelPaper
+	p, err = paper.GetPaper(1)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return
+	}
+
+	a := types.ModelAppeal{
+		State:      StateWaitReviewer,
+		PaperId:    1,
+		ExaminerId: p.Examiner,
+		ReviewerId: p.Reviewer,
+		AppealInfo: "第一题误判",
+	}
+	var appeal *types.ModelAppeal
+	appeal, err = AddAppeal(a)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
 	}
 
-	t.Log(a)
-}
-
-func TestGetAppealsByPaperId(t *testing.T) {
-	err := db.Connect(db.Config{
-		Dsn:      viper.GetString(config.DbDsn),
-		Database: db.MySql,
-	},
-		&types.ModelPaper{},
-	)
-	if err != nil {
-		t.Errorf("err:%v", err)
-		return
-	}
-
-	res, err := GetAppealsByPaperId(1)
-	if err != nil {
-		t.Errorf("err:%v", err)
-		return
-	}
-	t.Log(res)
+	t.Log(appeal)
 }
 
 func TestChangeAppealInfo(t *testing.T) {

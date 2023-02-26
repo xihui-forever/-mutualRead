@@ -28,15 +28,8 @@ func init() {
 	}
 }
 
-func AddTeacher(teacherId uint64, pwd string, name string, email string) (*types.ModelTeacher, error) {
-	a := types.ModelTeacher{
-		TeacherId: teacherId,
-		Password:  Encrypt(pwd),
-		Name:      name,
-		Email:     email,
-	}
-
-	err := db.Create(&a).Error
+func AddTeacher(teacher types.ModelTeacher) (*types.ModelTeacher, error) {
+	err := db.Create(&teacher).Error
 	if err != nil {
 		if types.IsUniqueErr(err) {
 			return nil, ErrTeacherExist
@@ -45,7 +38,7 @@ func AddTeacher(teacherId uint64, pwd string, name string, email string) (*types
 		return nil, err
 	}
 
-	return &a, nil
+	return &teacher, nil
 }
 
 func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
@@ -76,7 +69,7 @@ func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
 
 func RemoveTeacher(teacherId uint64) (int64, error) {
 	var a types.ModelTeacher
-	result := db.Where("teacherId = ?", teacherId).Delete(&a)
+	result := db.Where("teacher_id = ?", teacherId).Delete(&a)
 	err := result.Error
 	count := result.RowsAffected
 	if err != nil {

@@ -42,8 +42,8 @@ func SetPaper(id uint64, grade uint32) error {
 	return nil
 }
 
-func GetPaper(id uint64) (*types.ModelExam, error) {
-	var a types.ModelExam
+func GetPaper(id uint64) (*types.ModelPaper, error) {
+	var a types.ModelPaper
 	err := db.Where("id = ?", id).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

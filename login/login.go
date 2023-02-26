@@ -9,8 +9,10 @@ import (
 
 var LoginHandlerMap = map[int]func(username interface{}, password string) (uint64, error){}
 
+type LoginType int
+
 const (
-	LoginTypeAdmin = iota + 1
+	LoginTypeAdmin LoginType = iota + 1
 	LoginTypeTeacher
 	LoginTypeStudent
 )
