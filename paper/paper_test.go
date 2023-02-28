@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/xihui-forever/mutualRead/config"
 	"github.com/xihui-forever/mutualRead/types"
-	"google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/image"
 	"testing"
 )
 
@@ -22,18 +21,22 @@ func TestAddPaper(t *testing.T) {
 		return
 	}
 
-	a, err := AddPaper("软件工程01", image.Derived{
-		Fingerprint:     nil,
-		Distance:        0,
-		LayerInfo:       nil,
-		BaseResourceUrl: "",
-	}, 95, 20199999, 20190000, 9112019111)
+	a := types.ModelPaper{
+		Img:        "C:\\Users\\Lenovo\\Pictures\\idle.png",
+		Grade:      60,
+		ExamId:     1,
+		ExaminerId: 20190001,
+		ReviewerId: 20190002,
+	}
+
+	var paper *types.ModelPaper
+	paper, err = AddPaper(a)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
 	}
 
-	t.Log(a)
+	t.Log(paper)
 }
 
 func TestGetPapersByExaminer(t *testing.T) {
@@ -48,7 +51,7 @@ func TestGetPapersByExaminer(t *testing.T) {
 		return
 	}
 
-	res, err := GetPapersByExaminer(20199999)
+	res, err := GetPaperListExaminer(20190001)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
@@ -68,7 +71,7 @@ func TestGetPapersByName(t *testing.T) {
 		return
 	}
 
-	res, err := GetPapersByName("软件工程01")
+	res, err := GetPaperListExam(1, 9112019111)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
@@ -88,7 +91,7 @@ func TestGetPaperById(t *testing.T) {
 		return
 	}
 
-	res, err := GetPaperById(1)
+	res, err := GetPaper(1, 9112019111)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
@@ -108,7 +111,7 @@ func TestChangeGrade(t *testing.T) {
 		return
 	}
 
-	err = ChangeGrade(1, 99)
+	err = ChangePaperGrade(1, 99, 9112019111)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return

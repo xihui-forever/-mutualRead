@@ -3,7 +3,6 @@ package types
 import (
 	"database/sql/driver"
 	"github.com/darabuchi/utils"
-	"google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/image"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -14,11 +13,12 @@ type ModelPaper struct {
 	UpdatedAt uint32                `json:"updated_at,omitempty" gorm:"autoUpdateTime;<-;column:updated_at;not null"`
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null"`
 
-	Imag     image.Derived `json:"imag,omitempty" gorm:"column:imag;not null"`
-	Grade    uint32        `json:"grade,omitempty" gorm:"column:grade;not null"`
-	ExamId   uint64        `json:"exam_id,omitempty" gorm:"column:exam_id;not null;index:idx_paper_exam_id,unique"`
-	Examiner uint64        `json:"examiner,omitempty" gorm:"column:examiner;not null;index:idx_paper_exam_id,unique"`
-	Reviewer uint64        `json:"reviewer,omitempty" gorm:"column:reviewer;not null"`
+	Img        string `json:"img,omitempty" gorm:"column:img;not null"`
+	Grade      uint32 `json:"grade,omitempty" gorm:"column:grade;not null"`
+	ExamId     uint64 `json:"exam_id,omitempty" gorm:"column:exam_id;not null;index:idx_paper_exam_id,unique"`
+	ExaminerId uint64 `json:"examiner_id,omitempty" gorm:"column:examiner_id;not null;index:idx_paper_exam_id,unique"`
+	ReviewerId uint64 `json:"reviewer_id,omitempty" gorm:"column:reviewer_id;not null"`
+	TeacherId  uint64 `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null"`
 }
 
 func (m *ModelPaper) Scan(value interface{}) error {

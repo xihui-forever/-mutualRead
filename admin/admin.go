@@ -51,9 +51,6 @@ func RemoveAdmin(username string) error {
 	result := db.Where("username = ?", username).Delete(&a)
 	err := result.Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return ErrAdminNotExist
-		}
 		log.Errorf("err:%v", err)
 		return err
 	}

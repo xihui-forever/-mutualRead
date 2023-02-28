@@ -4,20 +4,11 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
 	"github.com/xihui-forever/mutualRead/types"
-	"google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/image"
 	"gorm.io/gorm"
 )
 
-func AddPaper(imag image.Derived, grade uint32, examId uint64, examiner uint64, reviewer uint64, chargePerson uint64) (*types.ModelPaper, error) {
-	a := types.ModelPaper{
-		Imag:     imag,
-		Grade:    grade,
-		ExamId:   examId,
-		Examiner: examiner,
-		Reviewer: reviewer,
-	}
-
-	err := db.Create(&a).Error
+func AddPaper(paper types.ModelPaper) (*types.ModelPaper, error) {
+	err := db.Create(&paper).Error
 	if err != nil {
 		if types.IsUniqueErr(err) {
 			return nil, ErrPaperExist
@@ -26,11 +17,11 @@ func AddPaper(imag image.Derived, grade uint32, examId uint64, examiner uint64, 
 		return nil, err
 	}
 
-	return &a, nil
+	return &paper, nil
 }
 
-func SetPaper(id uint64, grade uint32) error {
-	res := db.Model(&types.ModelPaper{}).Where("id = ?", id).Update("grade", grade)
+func ChangePaperGrade(id uint64, grade uint32, teacherId uint64) error {
+	res := db.Model(&types.ModelPaper{}).Where("id = ? AND teacher_id = ?", id, teacherId).Update("grade", grade)
 	err := res.Error
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -42,9 +33,9 @@ func SetPaper(id uint64, grade uint32) error {
 	return nil
 }
 
-func GetPaper(id uint64) (*types.ModelPaper, error) {
+func GetPaper(id uint64, teacherId uint64) (*types.ModelPaper, error) {
 	var a types.ModelPaper
-	err := db.Where("id = ?", id).First(&a).Error
+	err := db.Where("id = ? AND teacher_id = ?", id, teacherId).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrPaperNotExist
@@ -79,9 +70,9 @@ func GetPaperListExaminer(examiner uint64) (*[]types.ModelPaper, error) {
 	return &a, nil
 }
 
-func GetPaperListExam(examId uint64) (*[]types.ModelPaper, error) {
+func GetPaperListExam(examId uint64, teacherId uint64) (*[]types.ModelPaper, error) {
 	var a []types.ModelPaper
-	err := db.Where("exam_id = ?", examId).Find(&a).Error
+	err := db.Where("exam_id = ? AND teacher_id = ?", examId, teacherId).Find(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrPaperNotExist

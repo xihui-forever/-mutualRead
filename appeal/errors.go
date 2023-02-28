@@ -9,6 +9,7 @@ var (
 	ErrRemoveFailed             = errors.New("appeal cannot be removed")
 	ErrAppealRemoveFailed       = errors.New("appeal remove failed")
 	ErrInfoCannotChange         = errors.New("info cannot be changed")
+	ErrAppealStateChangeFailed  = errors.New("appeall state change failed")
 	ErrAppealInfoChangeFailed   = errors.New("appeal info change failed")
 	ErrReviewInfoChangeFailed   = errors.New("review info change failed")
 	ErrReviewInfoCannotChange   = errors.New("review info cannot be changed")

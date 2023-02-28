@@ -8,14 +8,14 @@ import (
 )
 
 func init() {
-	BatchAddRolePerm("admin", []string{"GetTeacherAll"})
+	BatchAddRolePerm(1, []string{"/exam_add"})
 }
 
-func BatchAddRolePerm(role string, permissions []string) (int64, error) {
+func BatchAddRolePerm(role int, permissions []string) (int64, error) {
 	var count int64 = 0
 	var error error = nil
 	for _, value := range permissions {
-		a := types.ModelRolePerm{
+		a := types.ModelPerm{
 			Role:       role,
 			Permission: value,
 		}
@@ -34,8 +34,8 @@ func BatchAddRolePerm(role string, permissions []string) (int64, error) {
 	return count, error
 }
 
-func CheckPermission(role string, permission string) (bool, error) {
-	var a types.ModelRolePerm
+func CheckPermission(role int, permission string) (bool, error) {
+	var a types.ModelPerm
 	err := db.Where("role = ? AND permission = ?", role, permission).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

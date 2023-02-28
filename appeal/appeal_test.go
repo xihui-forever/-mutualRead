@@ -24,7 +24,7 @@ func TestAddAppeal(t *testing.T) {
 	}
 
 	var p *types.ModelPaper
-	p, err = paper.GetPaper(1)
+	p, err = paper.GetPaper(1, 9112019111)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return
@@ -33,8 +33,8 @@ func TestAddAppeal(t *testing.T) {
 	a := types.ModelAppeal{
 		State:      StateWaitReviewer,
 		PaperId:    1,
-		ExaminerId: p.Examiner,
-		ReviewerId: p.Reviewer,
+		ExaminerId: p.ExaminerId,
+		ReviewerId: p.ReviewerId,
 		AppealInfo: "第一题误判",
 	}
 	var appeal *types.ModelAppeal

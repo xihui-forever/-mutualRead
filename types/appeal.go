@@ -15,6 +15,7 @@ type ModelAppeal struct {
 	PaperId      uint64 `json:"paper_id,omitempty" gorm:"column:paper_id;not null"`
 	ExaminerId   uint64 `json:"examiner_id,omitempty" gorm:"column:examiner_id;not null"`
 	ReviewerId   uint64 `json:"reviewer_id,omitempty" gorm:"column:reviewer_id;not null"`
+	TeacherId    uint64 `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null"`
 	ChangeAt     uint32 `json:"change_at,omitempty" gorm:"column:change_at"`
 	ReviewAt     uint32 `json:"reviewer_at,omitempty" gorm:"column:reviewer_at"`
 	ResultAt     uint32 `json:"result_at,omitempty" gorm:"column:result_at"`

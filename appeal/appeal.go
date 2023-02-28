@@ -16,7 +16,7 @@ const (
 )
 
 func AddAppeal(appeal types.ModelAppeal) (*types.ModelAppeal, error) {
-	p, err := paper.GetPaper(appeal.PaperId)
+	p, err := paper.GetPaper(appeal.PaperId, appeal.TeacherId)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -45,9 +45,9 @@ func AddAppeal(appeal types.ModelAppeal) (*types.ModelAppeal, error) {
 	return &appeal, nil
 }
 
-func RemoveAppealExaminer(id uint64) (int64, error) {
+func RemoveAppealExaminer(id uint64, examinerId uint64) (int64, error) {
 	var a types.ModelAppeal
-	err := db.Where("appeal_id = ?", id).First(&a).Error
+	err := db.Where("id = ? AND examiner_id = ?", id, examinerId).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return 0, ErrAppealNotExist
@@ -58,7 +58,7 @@ func RemoveAppealExaminer(id uint64) (int64, error) {
 	if a.State != StateWaitReviewer {
 		return 0, ErrRemoveFailed
 	}
-	result := db.Where("appeal_id = ?", id).Delete(&a)
+	result := db.Where("id = ? AND state = ?", id, StateWaitReviewer).Delete(&a)
 	err = result.Error
 	count := result.RowsAffected
 	if err != nil {
@@ -73,7 +73,7 @@ func RemoveAppealExaminer(id uint64) (int64, error) {
 
 func GetAppealState(id uint64) (int, error) {
 	var a types.ModelAppeal
-	err := db.Where("appeal_id = ?", id).First(&a).Error
+	err := db.Where("id = ?", id).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return 0, ErrAppealNotExist
@@ -82,6 +82,51 @@ func GetAppealState(id uint64) (int, error) {
 		return 0, err
 	}
 	return a.State, nil
+}
+
+func ChangeToStateWaitTeacher(id uint64) error {
+	res := db.Model(&types.ModelAppeal{}).Where("id = ? AND state = ?", id, StateWaitReviewer).Update("state", StateWaitTeacher)
+	err := res.Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if res.RowsAffected == 0 {
+		return ErrAppealStateChangeFailed
+	}
+
+	return nil
+}
+
+func ChangeToStateProcessed(id uint64) error {
+	res := db.Model(&types.ModelAppeal{}).Where("id = ? and state = ?", id, StateWaitTeacher).Update("state", StateProcessed)
+	err := res.Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if res.RowsAffected == 0 {
+		return ErrAppealStateChangeFailed
+	}
+
+	return nil
+}
+
+func ChangeToStateExpired(id uint64) error {
+	res := db.Model(&types.ModelAppeal{}).Where("id = ? and state = ?", id, StateWaitTeacher).Update("state", StateExpired)
+	err := res.Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if res.RowsAffected == 0 {
+		return ErrAppealStateChangeFailed
+	}
+
+	return nil
 }
 
 func GetAppealsExaminer(examinerId uint64) (*[]types.ModelAppeal, error) {
@@ -116,10 +161,10 @@ func ChangeAppealInfo(id uint64, appealInfo string) error {
 		log.Errorf("err:%v", err)
 		return err
 	}
-	if state != StateWaitReviewer {
+	if state == StateWaitReviewer {
 		return ErrInfoCannotChange
 	}
-	res := db.Model(&types.ModelAppeal{}).Where("id = ?", id).Update("appeal_info", appealInfo)
+	res := db.Model(&types.ModelAppeal{}).Where("id = ? AND state = ?", id, StateWaitReviewer).Update("appeal_info", appealInfo)
 	err = res.Error
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -142,7 +187,7 @@ func ChangeReviewInfo(id uint64, reviewInfo string) error {
 	if state != StateWaitReviewer {
 		return ErrReviewInfoCannotChange
 	}
-	res := db.Model(&types.ModelAppeal{}).Where("id = ?", id).Update("review_info", reviewInfo)
+	res := db.Model(&types.ModelAppeal{}).Where("id = ? AND state = ?", id, StateWaitReviewer).Update("review_info", reviewInfo)
 	err = res.Error
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -165,7 +210,7 @@ func ChangeAppealResult(id uint64, appealResult string) error {
 	if state != StateWaitTeacher {
 		return ErResultCannotChange
 	}
-	res := db.Model(&types.ModelAppeal{}).Where("id = ?", id).Update("appealResult", appealResult)
+	res := db.Model(&types.ModelAppeal{}).Where("id = ? AND state = ?", id, StateWaitTeacher).Update("appealResult", appealResult)
 	err = res.Error
 	if err != nil {
 		log.Errorf("err:%v", err)

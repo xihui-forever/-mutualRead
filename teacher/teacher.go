@@ -1,4 +1,4 @@
-package student
+package teacher
 
 import (
 	"encoding/base64"
@@ -12,7 +12,7 @@ import (
 
 func init() {
 	login.LoginHandlerMap[login.LoginTypeAdmin] = func(username interface{}, password string) (uint64, error) {
-		data, err := GetStudent(utils.ToUint64(username))
+		data, err := GetTeacher(utils.ToUint64(username))
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return 0, err
@@ -28,28 +28,28 @@ func init() {
 	}
 }
 
-func AddStudent(student types.ModelStudent) (*types.ModelStudent, error) {
-	err := db.Create(&student).Error
+func AddTeacher(teacher types.ModelTeacher) (*types.ModelTeacher, error) {
+	err := db.Create(&teacher).Error
 	if err != nil {
 		if types.IsUniqueErr(err) {
-			return nil, ErrStudentExist
+			return nil, ErrTeacherExist
 		}
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
 
-	return &student, nil
+	return &teacher, nil
 }
 
-func AddStudents(students []types.ModelStudent) (int64, error) {
+func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
 	var count int64 = 0
 	var error error = nil
-	var a types.ModelStudent
-	for _, value := range students {
-		_, err := GetStudent(value.StudentId)
+	var a types.ModelTeacher
+	for _, value := range teachers {
+		_, err := GetTeacher(value.TeacherId)
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
-				error = ErrStudentExist
+				error = ErrTeacherExist
 				count += 0
 			} else {
 				log.Errorf("err:%v", err)
@@ -67,28 +67,25 @@ func AddStudents(students []types.ModelStudent) (int64, error) {
 	return count, error
 }
 
-func RemoveStudent(studentId uint64) (int64, error) {
-	var a types.ModelStudent
-	result := db.Where("studentId = ?", studentId).Delete(&a)
+func RemoveTeacher(teacherId uint64) (int64, error) {
+	var a types.ModelTeacher
+	result := db.Where("teacher_id = ?", teacherId).Delete(&a)
 	err := result.Error
 	count := result.RowsAffected
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return 0, ErrStudentNotExist
-		}
 		log.Errorf("err:%v", err)
 		return 0, err
 	}
 	if count == 0 {
-		return 0, ErrStudentRemoveFailed
+		return 0, ErrTeacherRemoveFailed
 	}
 	return count, nil
 }
 
-func RemoveStudents(students []uint64) (int64, error) {
+func RemoveTeachers(teachers []uint64) (int64, error) {
 	var count int64 = 0
-	for _, value := range students {
-		c, err := RemoveStudent(value)
+	for _, value := range teachers {
+		c, err := RemoveTeacher(value)
 		count += c
 		if err != nil {
 			log.Errorf("err:%v", err)
@@ -98,8 +95,8 @@ func RemoveStudents(students []uint64) (int64, error) {
 	return count, nil
 }
 
-func GetStudentsAll() (*[]types.ModelStudent, error) {
-	var a []types.ModelStudent
+func GetTeachersAll() (*[]types.ModelTeacher, error) {
+	var a []types.ModelTeacher
 	result := db.Find(&a)
 	var err = result.Error
 	if err != nil {
@@ -109,12 +106,12 @@ func GetStudentsAll() (*[]types.ModelStudent, error) {
 	return &a, nil
 }
 
-func GetStudent(studentId uint64) (*types.ModelStudent, error) {
-	var a types.ModelStudent
-	err := db.Where("studentId = ?", studentId).First(&a).Error
+func GetTeacher(teacherId uint64) (*types.ModelTeacher, error) {
+	var a types.ModelTeacher
+	err := db.Where("teacherId = ?", teacherId).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, ErrStudentNotExist
+			return nil, ErrTeacherNotExist
 		}
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -129,22 +126,26 @@ func CheckPassword(input string, password string) error {
 	return nil
 }
 
-func ChangePassword(studentId uint64, oldPwd, newPwd string) error {
-	a, err := GetStudent(studentId)
+func ChangePassword(teacherId uint64, oldPwd, newPwd string) error {
+	if newPwd == "" {
+		return ErrorNewPwdEmpty
+	}
+
+	a, err := GetTeacher(teacherId)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
 	}
 
 	if a == nil {
-		return ErrStudentNotExist
+		return ErrTeacherNotExist
 	}
 
 	if a.Password != Encrypt(oldPwd) {
 		return ErrPasswordWrong
 	}
 
-	res := db.Model(&types.ModelStudent{}).Where("id = ?", a.Id).Update("password", Encrypt(newPwd))
+	res := db.Model(&types.ModelTeacher{}).Where("id = ?", a.Id).Update("password", Encrypt(newPwd))
 	err = res.Error
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -158,11 +159,15 @@ func ChangePassword(studentId uint64, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeEmail(studentId uint64, email string) error {
-	a, err := GetStudent(studentId)
+func ChangeEmail(teacherId uint64, email string) error {
+	a, err := GetTeacher(teacherId)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
+	}
+
+	if email == "" {
+		return ErrEmailEmpty
 	}
 
 	if a.Email == email {
@@ -170,7 +175,7 @@ func ChangeEmail(studentId uint64, email string) error {
 	}
 
 	if a.Email != email {
-		res := db.Model(&types.ModelStudent{}).Where("id = ?", a.Id).Update("email", email)
+		res := db.Model(&types.ModelTeacher{}).Where("id = ?", a.Id).Update("email", email)
 		err = res.Error
 		if err != nil {
 			log.Errorf("err:%v", err)
@@ -180,6 +185,7 @@ func ChangeEmail(studentId uint64, email string) error {
 			return ErrEmailChangeFailed
 		}
 	}
+
 	return nil
 }
 
