@@ -1,4 +1,4 @@
-package cmd
+package impl
 
 type Cmd struct {
 	Path  string
