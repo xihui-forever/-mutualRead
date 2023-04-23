@@ -29,7 +29,7 @@ func AddAppeal(appeal types.ModelAppeal) (*types.ModelAppeal, error) {
 		return nil, res.Error
 	}
 	for _, value := range a {
-		if value.State != StateProcessed || value.State != StateExpired {
+		if value.State != StateProcessed && value.State != StateExpired {
 			return nil, ErrAppealFailed
 		}
 	}

@@ -14,7 +14,7 @@ type ModelPerm struct {
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_perm_role,unique"`
 
 	Role       int    `json:"role,omitempty" gorm:"column:role;not null;index:idx_perm_role,unique"`
-	Permission string `json:"permission,omitempty" gorm:"column:permission;not null"`
+	Permission string `json:"permission,omitempty" gorm:"column:permission;not null;index:idx_perm_role,unique"`
 }
 
 func (m *ModelPerm) Scan(value interface{}) error {
@@ -26,5 +26,5 @@ func (m *ModelPerm) Value() (driver.Value, error) {
 }
 
 func (m *ModelPerm) TableName() string {
-	return "mutual_read_perm"
+	return "goon_perm"
 }

@@ -14,7 +14,7 @@ type ModelExam struct {
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null"`
 
 	Name      string `json:"name,omitempty" gorm:"column:name;not null"`
-	TeacherId uint64 `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null"`
+	TeacherId string `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null"`
 }
 
 func (m *ModelExam) Scan(value interface{}) error {
@@ -26,5 +26,5 @@ func (m *ModelExam) Value() (driver.Value, error) {
 }
 
 func (m *ModelExam) TableName() string {
-	return "mutual_read_exam"
+	return "goon_exam"
 }

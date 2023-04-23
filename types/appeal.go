@@ -1,6 +1,8 @@
 package types
 
 import (
+	"database/sql/driver"
+	"github.com/darabuchi/utils"
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -22,4 +24,16 @@ type ModelAppeal struct {
 	AppealInfo   string `json:"appeal_info,omitempty" gorm:"column:appeal_info;not null"`
 	ReviewInfo   string `json:"review_info,omitempty" gorm:"column:review_info"`
 	AppealResult string `json:"appeal_result,omitempty" gorm:"column:appeal_result"`
+}
+
+func (m *ModelAppeal) Scan(value interface{}) error {
+	return utils.Scan(value, m)
+}
+
+func (m *ModelAppeal) Value() (driver.Value, error) {
+	return utils.Value(m)
+}
+
+func (m *ModelAppeal) TableName() string {
+	return "goon_appeal"
 }

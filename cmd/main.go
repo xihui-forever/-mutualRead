@@ -1,19 +1,18 @@
 package main
 
 import (
-	"reflect"
-
+	"github.com/bytedance/sonic"
 	"github.com/darabuchi/log"
-	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
 	"github.com/spf13/viper"
-	"github.com/valyala/fasthttp"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/goon/middleware/session"
 	"github.com/xihui-forever/mutualRead/config"
 	"github.com/xihui-forever/mutualRead/impl"
 	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/types"
+	"reflect"
+	"strconv"
 )
 
 func main() {
@@ -23,7 +22,20 @@ func main() {
 		Dsn:      viper.GetString(config.DbDsn),
 		Database: db.MySql,
 	},
+		types.ModelPerm{},
+		types.ModelAppeal{},
+		types.ModelPaper{},
+		types.ModelExam{},
+		types.ModelStudent{},
+		types.ModelTeacher{},
+		types.ModelAdmin{},
 	)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return
+	}
+
+	err = role.Load()
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return
@@ -31,43 +43,67 @@ func main() {
 
 	app := goon.New()
 
-	app.PreUse("/", func(ctx *goon.Ctx) (string, error) {
-		var sess *session.Session
-		sid := ctx.GetReqHeader("X-Session-Id")
-		s, err := sess.GetSession(sid)
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return "", err
+	app.PreUse("/", func(ctx *goon.Ctx) error {
+		ctx.SetResHeader("Origin", "*")
+		ctx.SetResHeader("Access-Control-Allow-Origin", "*")
+		ctx.SetResHeader("Access-Control-Allow-Credentials", "true")
+		ctx.SetResHeader("Access-Control-Expose-Headers", "")
+		ctx.SetResHeader("Access-Control-Allow-Methods", "*")
+		ctx.SetResHeader("Access-Control-Allow-Headers", "*")
+		if ctx.Method() == "OPTIONS" {
+			ctx.SetStatusCode(200)
+			return ctx.Send("")
 		}
-		return s, nil
+		return ctx.Next()
 	})
 
 	app.PreUse("/", func(ctx *goon.Ctx) error {
-		roleType := utils.ToInt(ctx.GetReqHeader("role"))
 		path := ctx.Path()
-		_, err := role.CheckPermission(roleType, path)
+		flag, err := role.CheckPermission(role.RoleTypePublic, path)
+		if flag {
+			return ctx.Next()
+		}
+		/*if err != role.ErrRolePermExists {
+			log.Errorf("err:%v", err)
+			return err
+		}*/
+
+		var loginReq impl.LoginSession
+		sid := ctx.GetReqHeader("X-Session-Id")
+		s, err := session.GetSession(sid)
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err
 		}
-		return nil
+
+		err = sonic.UnmarshalString(s, &loginReq)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+
+		ctx.SetReqHeader("X-Role-Type", strconv.Itoa(loginReq.RoleType))
+
+		roleType := loginReq.RoleType
+		log.Info(roleType)
+		_, err = role.CheckPermission(roleType, path)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+
+		return ctx.Next()
 	})
 
 	for _, value := range impl.CmdList {
 		app.Post(value.Path, AddPost(value.Logic))
 	}
 
-	_ = fasthttp.ListenAndServe(":8080", func(ctx *fasthttp.RequestCtx) {
-		err := app.Call(ctx)
-		if err != nil {
-			log.Errorf("err:%v", err)
-			ctx.Response.Header.SetStatusCode(fasthttp.StatusInternalServerError)
-			_, e := ctx.Write([]byte(err.Error()))
-			if e != nil {
-				log.Errorf("err:%v", e)
-			}
-		}
-	})
+	err = app.ListenAndServe(":8080")
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return
+	}
 }
 
 func AddPost(logic interface{}) func(ctx *goon.Ctx) error {
@@ -97,6 +133,7 @@ func AddPost(logic interface{}) func(ctx *goon.Ctx) error {
 	}
 
 	if x.PkgPath() != "github.com/xihui-forever/goon" {
+		log.Error(x.PkgPath())
 		panic("first in is must *goon.Ctx")
 	}
 
@@ -135,7 +172,7 @@ func AddPost(logic interface{}) func(ctx *goon.Ctx) error {
 	}
 
 	return func(ctx *goon.Ctx) error {
-		req := reflect.New(out)
+		req := reflect.New(in)
 		err := ctx.ParseBody(req.Interface())
 		if err != nil {
 			log.Errorf("err:%v", err)
@@ -143,7 +180,7 @@ func AddPost(logic interface{}) func(ctx *goon.Ctx) error {
 		}
 
 		// 调用逻辑
-		ret := lv.Call([]reflect.Value{reflect.ValueOf(ctx), req.Elem()})
+		ret := lv.Call([]reflect.Value{reflect.ValueOf(ctx), req})
 		if !ret[1].IsNil() {
 			log.Errorf("err:%v", ret[1].Interface())
 

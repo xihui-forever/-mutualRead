@@ -13,7 +13,7 @@ type ModelTeacher struct {
 	UpdatedAt uint32                `json:"updated_at,omitempty" gorm:"autoUpdateTime;<-;column:updated_at;not null"`
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_teacher_teacher_id,unique"`
 
-	TeacherId uint64 `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null;index:idx_teacher_teacher_id,unique"`
+	TeacherId string `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null;index:idx_teacher_teacher_id,unique"`
 	Password  string `json:"password,omitempty" gorm:"column:password;not null"`
 	Name      string `json:"name,omitempty" gorm:"column:name;not null"`
 	Email     string `json:"email,omitempty" gorm:"column:email;not null"`
@@ -28,5 +28,5 @@ func (m *ModelTeacher) Value() (driver.Value, error) {
 }
 
 func (m *ModelTeacher) TableName() string {
-	return "mutual_read_teacher"
+	return "goon_teacher"
 }

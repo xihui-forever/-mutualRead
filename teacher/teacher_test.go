@@ -22,9 +22,9 @@ func TestAddTeacher(t *testing.T) {
 	}
 
 	a := types.ModelTeacher{
-		TeacherId: 9112019111,
-		Password:  "123456",
-		Name:      "老师",
+		TeacherId: "90120001",
+		Password:  Encrypt("123"),
+		Name:      "李强",
 		Email:     "1234567890@123.com",
 	}
 	teacher, err := AddTeacher(a)
@@ -48,7 +48,7 @@ func TestChangePassword(t *testing.T) {
 		return
 	}
 
-	err = ChangePassword(9112019111, "123456", "654321")
+	err = ChangePassword("90120001", "123456", "654321")
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
@@ -67,7 +67,7 @@ func TestChangeInfo(t *testing.T) {
 		return
 	}
 
-	err = ChangeEmail(9112019111, "123@123.com")
+	err = ChangeEmail("90120001", "123@123.com")
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
@@ -86,7 +86,7 @@ func TestGetTeacher(t *testing.T) {
 		return
 	}
 
-	res, err := GetTeacher(9112019111)
+	res, err := GetTeacher("90120001")
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return

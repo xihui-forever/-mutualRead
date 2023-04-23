@@ -5,28 +5,9 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
-	"github.com/xihui-forever/mutualRead/login"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
-
-func init() {
-	login.LoginHandlerMap[login.LoginTypeAdmin] = func(username interface{}, password string) (uint64, error) {
-		data, err := GetStudent(utils.ToUint64(username))
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return 0, err
-		}
-
-		err = CheckPassword(password, data.Password)
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return 0, err
-		}
-
-		return data.Id, nil
-	}
-}
 
 func AddStudent(student types.ModelStudent) (*types.ModelStudent, error) {
 	err := db.Create(&student).Error
@@ -67,7 +48,7 @@ func AddStudents(students []types.ModelStudent) (int64, error) {
 	return count, error
 }
 
-func RemoveStudent(studentId uint64) (int64, error) {
+func RemoveStudent(studentId string) (int64, error) {
 	var a types.ModelStudent
 	result := db.Where("studentId = ?", studentId).Delete(&a)
 	err := result.Error
@@ -82,7 +63,7 @@ func RemoveStudent(studentId uint64) (int64, error) {
 	return count, nil
 }
 
-func RemoveStudents(students []uint64) (int64, error) {
+func RemoveStudents(students []string) (int64, error) {
 	var count int64 = 0
 	for _, value := range students {
 		c, err := RemoveStudent(value)
@@ -106,9 +87,9 @@ func GetStudentsAll() (*[]types.ModelStudent, error) {
 	return &a, nil
 }
 
-func GetStudent(studentId uint64) (*types.ModelStudent, error) {
+func GetStudent(studentId string) (*types.ModelStudent, error) {
 	var a types.ModelStudent
-	err := db.Where("studentId = ?", studentId).First(&a).Error
+	err := db.Where("student_id = ?", studentId).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrStudentNotExist
@@ -126,7 +107,7 @@ func CheckPassword(input string, password string) error {
 	return nil
 }
 
-func ChangePassword(studentId uint64, oldPwd, newPwd string) error {
+func ChangePassword(studentId string, oldPwd, newPwd string) error {
 	a, err := GetStudent(studentId)
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -155,7 +136,7 @@ func ChangePassword(studentId uint64, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeEmail(studentId uint64, email string) error {
+func ChangeEmail(studentId string, email string) error {
 	a, err := GetStudent(studentId)
 	if err != nil {
 		log.Errorf("err:%v", err)

@@ -16,7 +16,7 @@ func TestAddAppeal(t *testing.T) {
 		Dsn:      viper.GetString(config.DbDsn),
 		Database: db.MySql,
 	},
-		&types.ModelPaper{},
+		&types.ModelAppeal{},
 	)
 	if err != nil {
 		t.Errorf("err:%v", err)

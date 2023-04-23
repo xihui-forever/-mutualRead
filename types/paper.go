@@ -30,5 +30,5 @@ func (m *ModelPaper) Value() (driver.Value, error) {
 }
 
 func (m *ModelPaper) TableName() string {
-	return "mutual_read_paper"
+	return "goon_paper"
 }

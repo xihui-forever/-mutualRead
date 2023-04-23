@@ -5,28 +5,9 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
-	"github.com/xihui-forever/mutualRead/login"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
-
-func init() {
-	login.LoginHandlerMap[login.LoginTypeAdmin] = func(username interface{}, password string) (uint64, error) {
-		data, err := GetTeacher(utils.ToUint64(username))
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return 0, err
-		}
-
-		err = CheckPassword(password, data.Password)
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return 0, err
-		}
-
-		return data.Id, nil
-	}
-}
 
 func AddTeacher(teacher types.ModelTeacher) (*types.ModelTeacher, error) {
 	err := db.Create(&teacher).Error
@@ -67,7 +48,7 @@ func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
 	return count, error
 }
 
-func RemoveTeacher(teacherId uint64) (int64, error) {
+func RemoveTeacher(teacherId string) (int64, error) {
 	var a types.ModelTeacher
 	result := db.Where("teacher_id = ?", teacherId).Delete(&a)
 	err := result.Error
@@ -82,7 +63,7 @@ func RemoveTeacher(teacherId uint64) (int64, error) {
 	return count, nil
 }
 
-func RemoveTeachers(teachers []uint64) (int64, error) {
+func RemoveTeachers(teachers []string) (int64, error) {
 	var count int64 = 0
 	for _, value := range teachers {
 		c, err := RemoveTeacher(value)
@@ -106,9 +87,22 @@ func GetTeachersAll() (*[]types.ModelTeacher, error) {
 	return &a, nil
 }
 
-func GetTeacher(teacherId uint64) (*types.ModelTeacher, error) {
+func GetTeacherById(id uint64) (*types.ModelTeacher, error) {
 	var a types.ModelTeacher
-	err := db.Where("teacherId = ?", teacherId).First(&a).Error
+	err := db.Where("id = ?", id).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrTeacherNotExist
+		}
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+	return &a, nil
+}
+
+func GetTeacher(teacherId string) (*types.ModelTeacher, error) {
+	var a types.ModelTeacher
+	err := db.Where("teacher_id = ?", teacherId).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrTeacherNotExist
@@ -126,7 +120,7 @@ func CheckPassword(input string, password string) error {
 	return nil
 }
 
-func ChangePassword(teacherId uint64, oldPwd, newPwd string) error {
+func ChangePassword(teacherId string, oldPwd, newPwd string) error {
 	if newPwd == "" {
 		return ErrorNewPwdEmpty
 	}
@@ -159,7 +153,7 @@ func ChangePassword(teacherId uint64, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeEmail(teacherId uint64, email string) error {
+func ChangeEmail(teacherId string, email string) error {
 	a, err := GetTeacher(teacherId)
 	if err != nil {
 		log.Errorf("err:%v", err)

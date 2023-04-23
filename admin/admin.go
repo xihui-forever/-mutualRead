@@ -5,28 +5,9 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
-	"github.com/xihui-forever/mutualRead/login"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
-
-func init() {
-	login.LoginHandlerMap[login.LoginTypeAdmin] = func(username interface{}, password string) (uint64, error) {
-		data, err := GetAdmin(utils.ToString(username))
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return 0, err
-		}
-
-		err = CheckPassword(password, data.Password)
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return 0, err
-		}
-
-		return data.Id, nil
-	}
-}
 
 func AddAdmin(username string, pwd string) (*types.ModelAdmin, error) {
 	a := types.ModelAdmin{

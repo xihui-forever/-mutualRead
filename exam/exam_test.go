@@ -1,6 +1,7 @@
-package student
+package exam
 
 import (
+	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
 	"github.com/spf13/viper"
 	"github.com/xihui-forever/mutualRead/config"
@@ -8,30 +9,24 @@ import (
 	"testing"
 )
 
-func TestAddStudent(t *testing.T) {
+func TestAddExam(t *testing.T) {
 	config.Load()
 	err := db.Connect(db.Config{
 		Dsn:      viper.GetString(config.DbDsn),
 		Database: db.MySql,
 	},
-		&types.ModelStudent{},
+		&types.ModelAppeal{},
 	)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
 	}
 
-	a := types.ModelStudent{
-		StudentId: "20190001",
-		Password:  Encrypt("111"),
-		Name:      "张三",
-		Email:     "email@123.com",
-	}
-	stu, err := AddStudent(a)
+	var a *types.ModelExam
+	a, err = AddExam("数据结构第一次测试", "90120001")
 	if err != nil {
-		t.Errorf("err:%v", err)
+		log.Errorf("err:%v", err)
 		return
 	}
-
-	t.Log(stu)
+	t.Log(a)
 }
