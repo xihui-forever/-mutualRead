@@ -192,7 +192,6 @@ func ListTeacher(opt *types.ListOption) ([]*types.ModelTeacher, *types.Page, err
 			db = db.Where("email like ?", "%"+option.Val+"%")
 		default:
 			log.Errorf("unknown option key:%v", option.Key)
-			return nil, nil, types.CreateErrorWithMsg(types.ErrInvalidOptionKey, "unknown option key")
 		}
 	}
 

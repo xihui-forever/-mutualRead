@@ -1,4 +1,0 @@
-package teacher
-
-func init() {
-}

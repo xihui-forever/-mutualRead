@@ -34,3 +34,85 @@ func (m *ModelStudent) Value() (driver.Value, error) {
 func (m *ModelStudent) TableName() string {
 	return "goon_student"
 }
+
+const (
+	CmdPathGetStudent    = "/student/get"
+	CmdPathChangeStudent = "/student/change"
+
+	CmdPathGetStudentAdmin  = "/admin/student/get"
+	CmdPathAddStudentAdmin  = "/admin/student/set"
+	CmdPathSetStudentAdmin  = "/admin/student/set"
+	CmdPathDelStudentAdmin  = "/admin/student/del"
+	CmdPathListStudentAdmin = "/admin/student/list"
+)
+
+type (
+	GetStudentRsp struct {
+		Student *ModelStudent `json:"student,omitempty" yaml:"student,omitempty"`
+	}
+)
+
+const (
+	StudentChangeTypeEmail = iota + 1
+)
+
+type (
+	ChangeStudentReq struct {
+		ChangeType int `json:"change_type,omitempty" yaml:"change_type,omitempty" validate:"required"`
+
+		Email string `json:"email,omitempty" yaml:"email,omitempty"`
+	}
+)
+
+type (
+	AddStudentAdminReq struct {
+		Student *ModelStudent `json:"student,omitempty" yaml:"student,omitempty" validate:"required"`
+	}
+
+	AddStudentAdminRsp struct {
+		Student *ModelStudent `json:"student,omitempty" yaml:"student,omitempty"`
+	}
+)
+
+type (
+	GetStudentAdminReq struct {
+		Id uint64 `json:"id,omitempty" yaml:"id,omitempty" validate:"required"`
+	}
+
+	GetStudentAdminRsp struct {
+		Student *ModelStudent `json:"student,omitempty" yaml:"student,omitempty"`
+	}
+)
+
+type (
+	SetStudentAdminReq struct {
+		Student *ModelStudent `json:"student,omitempty" yaml:"student,omitempty" validate:"required"`
+	}
+
+	SetStudentAdminRsp struct {
+		Student *ModelStudent `json:"student,omitempty" yaml:"student,omitempty"`
+	}
+)
+
+type (
+	DelStudentAdminReq struct {
+		Id uint64 `json:"id,omitempty" yaml:"id,omitempty"`
+	}
+)
+
+const (
+	ListStudent_OptionStudentId = iota + 1
+	ListStudent_OptionNameLike
+	ListStudent_OptionEmailLike
+)
+
+type (
+	ListStudentAdminReq struct {
+		Options *ListOption `json:"options,omitempty" yaml:"options,omitempty" validate:"required"`
+	}
+
+	ListStudentAdminRsp struct {
+		Page     *Page           `json:"page,omitempty" yaml:"page,omitempty"`
+		Students []*ModelStudent `json:"students,omitempty" yaml:"students,omitempty"`
+	}
+)

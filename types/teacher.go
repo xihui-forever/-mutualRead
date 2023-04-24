@@ -47,14 +47,14 @@ const (
 	CmdPathListTeacherAdmin = "/admin/teacher/list"
 )
 
-const (
-	TeacherChangeTypeEmail = iota + 1
-)
-
 type (
 	GetTeacherRsp struct {
 		Teacher *ModelTeacher `json:"teacher,omitempty" yaml:"teacher,omitempty"`
 	}
+)
+
+const (
+	TeacherChangeTypeEmail = iota + 1
 )
 
 type (

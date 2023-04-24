@@ -136,31 +136,73 @@ func ChangePassword(studentId string, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeEmail(studentId string, email string) error {
-	a, err := GetStudent(studentId)
+func ChangeEmail(id uint64, email string) error {
+	err := db.Where("id = ?", id).Update("email", email).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
-	}
-
-	if a.Email == email {
-		return ErrorEmailNoChange
-	}
-
-	if a.Email != email {
-		res := db.Model(&types.ModelStudent{}).Where("id = ?", a.Id).Update("email", email)
-		err = res.Error
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return err
-		}
-		if res.RowsAffected == 0 {
-			return ErrEmailChangeFailed
-		}
 	}
 	return nil
 }
 
 func Encrypt(pwd string) string {
 	return base64.StdEncoding.EncodeToString([]byte(utils.HmacSha384("10e5bbcdadc047328f4ed085ccbf9088", pwd)))
+}
+
+func Get(id uint64) (*types.ModelStudent, error) {
+	var a types.ModelStudent
+	err := db.Where("id = ?", id).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrStudentNotExist
+		}
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	return &a, nil
+}
+
+func Set(s *types.ModelStudent) (*types.ModelStudent, error) {
+	err := db.Model(&types.ModelStudent{}).Omit("password").Save(s).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+	return s, nil
+}
+
+func Del(id uint64) error {
+	err := db.Where("id = ?", id).Delete(&types.ModelStudent{}).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+	return nil
+}
+
+func List(opt *types.ListOption) ([]*types.ModelStudent, *types.Page, error) {
+	db := db.Model(&types.ModelStudent{})
+
+	for _, option := range opt.Options {
+		switch option.Key {
+		case types.ListStudent_OptionStudentId:
+			db = db.Where("student_id = ?", option.Val)
+		case types.ListStudent_OptionNameLike:
+			db = db.Where("name like ?", "%"+option.Val+"%")
+		case types.ListStudent_OptionEmailLike:
+			db = db.Where("email like ?", "%"+option.Val+"%")
+		default:
+			log.Errorf("unknown option:%v", option)
+		}
+	}
+
+	var list []*types.ModelStudent
+	page, err := opt.Find(db, &list)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, nil, err
+	}
+
+	return list, page, nil
 }
