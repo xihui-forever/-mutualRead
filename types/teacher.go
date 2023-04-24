@@ -41,7 +41,7 @@ const (
 	CmdPathChangeTeacher = "/teacher/change"
 
 	CmdPathGetTeacherAdmin  = "/admin/teacher/get"
-	CmdPathAddTeacherAdmin  = "/admin/teacher/set"
+	CmdPathAddTeacherAdmin  = "/admin/teacher/add"
 	CmdPathSetTeacherAdmin  = "/admin/teacher/set"
 	CmdPathDelTeacherAdmin  = "/admin/teacher/del"
 	CmdPathListTeacherAdmin = "/admin/teacher/list"

@@ -4,32 +4,16 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/mutualRead/exam"
+	"github.com/xihui-forever/mutualRead/role"
+	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/types"
 )
 
 func init() {
-	//CmdList = append(CmdList,
-	//	Cmd{
-	//		Path:  "/exam_list",
-	//		Role:  2,
-	//		Logic: GetExamList,
-	//	},
-	//	//Cmd{
-	//	//	Path:  "/exam_get",
-	//	//	Role:  2,
-	//	//	Logic: GetTeacher,
-	//	//},
-	//	//Cmd{
-	//	//	Path:  "/exam_add",
-	//	//	Role:  2,
-	//	//	Logic: ChangeTeacher,
-	//	//},
-	//	//Cmd{
-	//	//	Path:  "/exam_del",
-	//	//	Role:  2,
-	//	//	Logic: GetExamList,
-	//	//},
-	//)
+	rpc.Register(types.CmdPathAddExam, AddExam, role.RoleTypeTeacher)
+	rpc.Register(types.CmdPathSetExam, SetExam, role.RoleTypeTeacher)
+	rpc.Register(types.CmdPathDelExam, DelExam, role.RoleTypeTeacher)
+	rpc.Register(types.CmdPathListExam, ListExam, role.RoleTypeTeacher)
 }
 
 func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {

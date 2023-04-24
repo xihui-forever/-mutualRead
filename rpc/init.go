@@ -112,13 +112,13 @@ func GenHandler(logic any) goon.Handler {
 			x = x.Elem()
 		}
 		if x.Kind() != reflect.Struct {
-			panic("first in is must *github.com/conuwa/rpc.Ctx")
+			panic("first in is must *github.com/xihui-forever/goon.Ctx")
 		}
 		if x.Name() != "Ctx" {
-			panic("first in is must *github.com/conuwa/rpc.Ctx")
+			panic("first in is must *github.com/xihui-forever/goon.Ctx")
 		}
-		if x.PkgPath() != "github.com/conuwa/rpc" {
-			panic("first in is must *github.com/conuwa/rpc.Ctx")
+		if x.PkgPath() != "github.com/xihui-forever/goon" {
+			panic("first in is must *github.com/xihui-forever/goon.Ctx")
 		}
 
 		// 按照三种不同的情况来处理
