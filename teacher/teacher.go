@@ -9,7 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddTeacher(teacher types.ModelTeacher) (*types.ModelTeacher, error) {
+func AddTeacher(teacher *types.ModelTeacher) (*types.ModelTeacher, error) {
+	teacher.Password = Encrypt(teacher.Password)
+
 	err := db.Create(&teacher).Error
 	if err != nil {
 		if types.IsUniqueErr(err) {
@@ -19,10 +21,20 @@ func AddTeacher(teacher types.ModelTeacher) (*types.ModelTeacher, error) {
 		return nil, err
 	}
 
-	return &teacher, nil
+	return teacher, nil
 }
 
-func AddTeachers(teachers []types.ModelTeacher) (int64, error) {
+func SetTeacher(t *types.ModelTeacher) (*types.ModelTeacher, error) {
+	err := db.Model(&types.ModelTeacher{}).Omit("password").Save(&t).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func AddTeachers(teachers []*types.ModelTeacher) (int64, error) {
 	var count int64 = 0
 	var error error = nil
 	var a types.ModelTeacher
@@ -87,7 +99,7 @@ func GetTeachersAll() (*[]types.ModelTeacher, error) {
 	return &a, nil
 }
 
-func GetTeacherById(id uint64) (*types.ModelTeacher, error) {
+func Get(id uint64) (*types.ModelTeacher, error) {
 	var a types.ModelTeacher
 	err := db.Where("id = ?", id).First(&a).Error
 	if err != nil {
@@ -153,31 +165,11 @@ func ChangePassword(teacherId string, oldPwd, newPwd string) error {
 	return nil
 }
 
-func ChangeEmail(teacherId string, email string) error {
-	a, err := GetTeacher(teacherId)
+func ChangeEmail(id uint64, email string) error {
+	err := db.Model(&types.ModelTeacher{}).Where("id = ?", id).Update("email", email).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
-	}
-
-	if email == "" {
-		return ErrEmailEmpty
-	}
-
-	if a.Email == email {
-		return ErrorEmailNoChange
-	}
-
-	if a.Email != email {
-		res := db.Model(&types.ModelTeacher{}).Where("id = ?", a.Id).Update("email", email)
-		err = res.Error
-		if err != nil {
-			log.Errorf("err:%v", err)
-			return err
-		}
-		if res.RowsAffected == 0 {
-			return ErrEmailChangeFailed
-		}
 	}
 
 	return nil
@@ -185,4 +177,41 @@ func ChangeEmail(teacherId string, email string) error {
 
 func Encrypt(pwd string) string {
 	return base64.StdEncoding.EncodeToString([]byte(utils.HmacSha384("10e5bbcdadc047328f4ed085ccbf9088", pwd)))
+}
+
+func ListTeacher(opt *types.ListOption) ([]*types.ModelTeacher, *types.Page, error) {
+	db := db.Model(&types.ModelTeacher{})
+
+	for _, option := range opt.Options {
+		switch option.Key {
+		case types.ListTeacher_OptionTeacherId:
+			db = db.Where("teacher_id = ?", option.Val)
+		case types.ListTeacher_OptionNameLike:
+			db = db.Where("name like ?", "%"+option.Val+"%")
+		case types.ListTeacher_OptionEmailLike:
+			db = db.Where("email like ?", "%"+option.Val+"%")
+		default:
+			log.Errorf("unknown option key:%v", option.Key)
+			return nil, nil, types.CreateErrorWithMsg(types.ErrInvalidOptionKey, "unknown option key")
+		}
+	}
+
+	var teachers []*types.ModelTeacher
+	page, err := opt.Find(db, &teachers)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, nil, err
+	}
+
+	return teachers, page, nil
+}
+
+func DelTeacher(id uint64) error {
+	err := db.Where("id = ?", id).Delete(&types.ModelTeacher{}).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	return nil
 }

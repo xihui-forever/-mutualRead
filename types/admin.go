@@ -24,6 +24,10 @@ type ModelAdmin struct {
 	idx_admin_username: admin-0
 */
 
+func (m *ModelAdmin) GetId() uint64 {
+	return m.Id
+}
+
 func (m *ModelAdmin) Scan(value interface{}) error {
 	return utils.Scan(value, m)
 }

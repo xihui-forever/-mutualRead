@@ -14,13 +14,13 @@ type AddAppealReq struct {
 	Info      string `json:"info"`
 }
 
-func init() {
-	CmdList = append(CmdList, Cmd{
-		Path:  "/appeal_add",
-		Role:  2,
-		Logic: AddAppeal,
-	})
-}
+//func init() {
+//	CmdList = append(CmdList, Cmd{
+//		Path:  "/appeal_add",
+//		Role:  2,
+//		Logic: AddAppeal,
+//	})
+//}
 
 func AddAppeal(ctx *goon.Ctx, req AddAppealReq) (*types.ModelAppeal, error) {
 	err := ctx.ParseBody(req)

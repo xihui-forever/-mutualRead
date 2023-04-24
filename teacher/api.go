@@ -1,0 +1,4 @@
+package teacher
+
+func init() {
+}

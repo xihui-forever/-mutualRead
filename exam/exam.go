@@ -57,12 +57,26 @@ func GetExam(id uint64) (*types.ModelExam, error) {
 	return &a, nil
 }
 
-func GetExamList(teacherId string) (*[]types.ModelExam, error) {
-	var a []types.ModelExam
-	err := db.Where("teacher_id = ?", teacherId).Find(&a).Error
+func GetExamList(opt *types.ListOption) ([]*types.ModelExam, error) {
+	var a []*types.ModelExam
+
+	//db := types.GetDbFromListOption(opt)
+
+	db := db.Model(&types.ModelExam{})
+
+	for _, option := range opt.Options {
+		switch option.Key {
+		case types.ExamListReq_OptionTeacherId:
+			db.Where("teacher_id = ?", option.Val)
+		default:
+			return nil, types.CreateError(types.ErrInvalidOptionKey)
+		}
+	}
+
+	err := db.Find(&a).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
-	return &a, nil
+	return a, nil
 }

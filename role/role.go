@@ -13,7 +13,10 @@ func Load() error {
 		log.Errorf("err:%s", err)
 		return err
 	}
-	_, err = BatchAddRolePerm(RoleTypeTeacher, []string{"/teacher_get", "/email_update", "/password_update",
+	_, err = BatchAddRolePerm(RoleTypeTeacher, []string{
+		types.CmdPathGetTeacher,
+		types.CmdPathChangeTeacher,
+		"/email_update", "/password_update",
 		"/exam_add", "/exam_update", "/exam_list", "/exam_delete", "/exam_get",
 		"/paper_add", "/paper_delete", "/paper_list", "/paper_get"})
 	if err != nil {

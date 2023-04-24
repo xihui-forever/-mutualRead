@@ -19,6 +19,10 @@ type ModelStudent struct {
 	Email     string `json:"email,omitempty" gorm:"column:email;not null"`
 }
 
+func (m *ModelStudent) GetId() uint64 {
+	return m.Id
+}
+
 func (m *ModelStudent) Scan(value interface{}) error {
 	return utils.Scan(value, m)
 }

@@ -2,13 +2,11 @@ module github.com/xihui-forever/mutualRead
 
 go 1.19
 
-replace github.com/xihui-forever/goon => ../goon
-
 require (
+	github.com/bytedance/sonic v1.8.0
 	github.com/darabuchi/log v0.0.0-20230125075412-100a40edc2a0
 	github.com/darabuchi/utils v0.0.0-20230206053620-96f449e1d7d6
 	github.com/spf13/viper v1.15.0
-	github.com/valyala/fasthttp v1.44.0
 	github.com/xihui-forever/goon v0.0.0-20230118095059-2a25cc6bb51f
 	gorm.io/gorm v1.24.3
 	gorm.io/plugin/soft_delete v1.2.0
@@ -19,9 +17,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.33.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
-	github.com/elliotchance/pie/v2 v2.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/glebarez/go-sqlite v1.19.2 // indirect
 	github.com/glebarez/sqlite v1.5.0 // indirect
@@ -81,6 +77,7 @@ require (
 	github.com/tinylib/msgp v1.1.8 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.44.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.opencensus.io v0.24.0 // indirect

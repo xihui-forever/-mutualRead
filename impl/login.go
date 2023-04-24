@@ -8,66 +8,68 @@ import (
 	"github.com/xihui-forever/goon/middleware/session"
 	"github.com/xihui-forever/mutualRead/admin"
 	"github.com/xihui-forever/mutualRead/role"
+	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/student"
 	"github.com/xihui-forever/mutualRead/teacher"
+	"github.com/xihui-forever/mutualRead/types"
 	"time"
 )
 
 func init() {
-	LoginHandlerMap[LoginTypeTeacher] = func(username string, password string) (uint64, error) {
+	LoginHandlerMap[LoginTypeTeacher] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := teacher.GetTeacher(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
 		err = teacher.CheckPassword(password, data.Password)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
-		return data.Id, nil
+		return data, nil
 	}
-	LoginHandlerMap[LoginTypeAdmin] = func(username string, password string) (uint64, error) {
+	LoginHandlerMap[LoginTypeAdmin] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := admin.GetAdmin(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
 		err = admin.CheckPassword(password, data.Password)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
-		return data.Id, nil
+		return data, nil
 	}
-	LoginHandlerMap[LoginTypeStudent] = func(username string, password string) (uint64, error) {
+	LoginHandlerMap[LoginTypeStudent] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := student.GetStudent(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
 		err = student.CheckPassword(password, data.Password)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
-		return data.Id, nil
+		return data, nil
 	}
 
-	CmdList = append(CmdList, Cmd{
-		Path:  "/login",
-		Role:  role.RoleTypePublic,
-		Logic: LoginHandler,
-	})
+	rpc.Register("/login", LoginHandler, role.RoleTypePublic)
 }
 
-var LoginHandlerMap = map[int]func(username string, password string) (uint64, error){}
+type LoginBaseRsp interface {
+	GetId() uint64
+}
+
+var LoginHandlerMap = map[int]func(username string, password string) (LoginBaseRsp, error){}
 
 const (
 	LoginTypeAdmin = iota + 1
@@ -84,10 +86,7 @@ type (
 	LoginRsp struct {
 		Token  string        `json:"token,omitempty"`
 		Expire time.Duration `json:"expire,omitempty"`
-	}
-	LoginSession struct {
-		RoleType int    `json:"role_type,omitempty"`
-		Id       uint64 `json:"id,omitempty"`
+		Info   interface{}   `json:"info,omitempty"`
 	}
 )
 
@@ -99,15 +98,15 @@ func LoginHandler(ctx *goon.Ctx, req *LoginReq) (*LoginRsp, error) {
 		return nil, errors.New("login type not found")
 	}
 
-	id, err := logic(req.Username, req.Password)
+	info, err := logic(req.Username, req.Password)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
 
-	resp.Token, err = session.GenSession(&LoginSession{
+	resp.Token, err = session.GenSession(&types.LoginSession{
 		RoleType: req.RoleType,
-		Id:       id,
+		Id:       info.GetId(),
 	}, xtime.Day)
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -115,5 +114,6 @@ func LoginHandler(ctx *goon.Ctx, req *LoginReq) (*LoginRsp, error) {
 	}
 
 	resp.Expire = xtime.Day
+	resp.Info = info
 	return &resp, nil
 }

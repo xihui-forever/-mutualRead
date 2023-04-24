@@ -28,3 +28,7 @@ func (m *ModelExam) Value() (driver.Value, error) {
 func (m *ModelExam) TableName() string {
 	return "goon_exam"
 }
+
+const (
+	ExamListReq_OptionTeacherId = iota + 1
+)
