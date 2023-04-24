@@ -27,7 +27,7 @@ func TestAddStudent(t *testing.T) {
 		Name:      "张三",
 		Email:     "email@123.com",
 	}
-	stu, err := AddStudent(a)
+	stu, err := Add(a)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return

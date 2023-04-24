@@ -4,7 +4,6 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/mutualRead/exam"
-	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/types"
 )
 
@@ -33,89 +32,76 @@ func init() {
 	//)
 }
 
-type (
-	ExamListReq struct {
-		Options *types.ListOption `json:"options,omitempty"`
+func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {
+	req.Exam.TeacherId = ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
+	exam, err := exam.Add(req.Exam)
+	if err != nil {
+		log.Errorf("err:%s", err)
+		return nil, err
 	}
-	ExamListRsp struct {
-		ExamList []*types.ModelExam `json:"exam_list"`
-	}
-	GetExamReq struct {
-		Id uint64 `json:"id"`
-	}
-	AddExamReq struct {
-		Name      string `json:"name"`
-		TeacherId string `json:"teacher_id"`
-	}
-	DelExamReq struct {
-		Id        uint64 `json:"id"`
-		TeacherId string `json:"teacher_id"`
-	}
-)
+	return exam, nil
+}
 
-func GetExamList(ctx *goon.Ctx, req *ExamListReq) (*ExamListRsp, error) {
-	var res ExamListRsp
+func SetExam(ctx *goon.Ctx, req types.SetExamReq) (*types.ModelExam, error) {
+	// 存在权限问题，所以要先看下用户是否对的齐
+	teacherId := ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
 
-	if req.Options == nil {
-		req.Options = &types.ListOption{}
+	e, err := exam.Get(req.Exam.Id)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
 	}
 
-	switch ctx.GetWithDef(types.HeaderRoleType, role.RoleTypePublic) {
-	case role.RoleTypeTeacher:
-		req.Options.Options = append(req.Options.Options, types.Option{
-			Key: types.ExamListReq_OptionTeacherId,
-			Val: ctx.GetReqHeader("X-User-Id"),
-		})
+	if e.TeacherId != teacherId {
+		return nil, exam.ErrExamNotExist
 	}
 
-	a, err := exam.GetExamList(req.Options)
+	req.Exam.TeacherId = teacherId
+
+	e, err = exam.Set(req.Exam)
+	if err != nil {
+		log.Errorf("err:%s", err)
+		return nil, err
+	}
+	return e, nil
+}
+
+func DelExam(ctx *goon.Ctx, req *types.ModelExam) error {
+	// 存在权限问题，所以要先看下用户是否对的齐
+	teacherId := ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
+
+	e, err := exam.Get(req.Id)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if e.TeacherId != teacherId {
+		return exam.ErrExamNotExist
+	}
+
+	err = exam.Del(req.Id)
+	if err != nil {
+		log.Errorf("err:%s", err)
+		return err
+	}
+
+	return nil
+}
+
+func ListExam(ctx *goon.Ctx, req *types.ListExamReq) (*types.ListExamRsp, error) {
+	req.Options.Options = append(req.Options.Options, types.Option{
+		Key: types.ListExam_OptionTeacherId,
+		Val: ctx.GetReqHeader(types.HeaderUserId),
+	})
+
+	var rsp types.ListExamRsp
+	var err error
+	rsp.Exams, rsp.Page, err = exam.List(req.Options)
 	if err != nil {
 		log.Errorf("err:%s", err)
 		return nil, err
 	}
 
-	res.ExamList = a
-
-	return &res, nil
+	return &rsp, nil
 }
-
-func GetExam(ctx *goon.Ctx, req *GetExamReq) (*types.ModelExam, error) {
-	a, err := exam.GetExam(req.Id)
-	if err != nil {
-		log.Errorf("err:%s", err)
-		return nil, err
-	}
-	return a, nil
-}
-
-//func AddExam(ctx *goon.Ctx, req *AddExamReq) (*ExamListRsp, error) {
-//	var a *ExamListRsp
-//	_, err := exam.AddExam(req.Name, req.TeacherId)
-//	if err != nil {
-//		log.Errorf("err:%s", err)
-//		return nil, err
-//	}
-//
-//	a.ExamList, err = exam.GetExamList(req.TeacherId)
-//	if err != nil {
-//		log.Errorf("err:%s", err)
-//		return nil, err
-//	}
-//	return a, nil
-//}
-//
-//func DelExam(ctx *goon.Ctx, req *DelExamReq) (*ExamListRsp, error) {
-//	var a *ExamListRsp
-//	err := exam.RemoveExam(req.Id)
-//	if err != nil {
-//		log.Errorf("err:%s", err)
-//		return nil, err
-//	}
-//
-//	a.ExamList, err = exam.GetExamList(req.TeacherId)
-//	if err != nil {
-//		log.Errorf("err:%s", err)
-//		return nil, err
-//	}
-//	return a, nil
-//}

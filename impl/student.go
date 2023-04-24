@@ -49,7 +49,7 @@ func ChangeStudent(ctx *goon.Ctx, req *types.ChangeStudentReq) error {
 }
 
 func AddStudentAdmin(ctx *goon.Ctx, req *types.AddStudentAdminReq) (*types.AddStudentAdminRsp, error) {
-	student, err := student.AddStudent(*req.Student)
+	student, err := student.Add(*req.Student)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err

@@ -14,7 +14,7 @@ type ModelExam struct {
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null"`
 
 	Name      string `json:"name,omitempty" gorm:"column:name;not null"`
-	TeacherId string `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null"`
+	TeacherId uint64 `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null"`
 }
 
 func (m *ModelExam) Scan(value interface{}) error {
@@ -30,5 +30,50 @@ func (m *ModelExam) TableName() string {
 }
 
 const (
-	ExamListReq_OptionTeacherId = iota + 1
+	CmdPathAddExam  = "/exam/add"
+	CmdPathSetExam  = "/exam/set"
+	CmdPathDelExam  = "/exam/del"
+	CmdPathListExam = "/exam/list"
+)
+
+type (
+	AddExamReq struct {
+		Exam *ModelExam `json:"exam,omitempty" yaml:"exam,omitempty" validate:"required"`
+	}
+
+	AddExamRsp struct {
+		Exam *ModelExam `json:"exam,omitempty" yaml:"exam,omitempty" validate:"required"`
+	}
+)
+
+type (
+	SetExamReq struct {
+		Exam *ModelExam `json:"exam,omitempty" yaml:"exam,omitempty" validate:"required"`
+	}
+
+	SetExamRsp struct {
+		Exam *ModelExam `json:"exam,omitempty" yaml:"exam,omitempty" validate:"required"`
+	}
+)
+
+type (
+	DelExamReq struct {
+		Id *ModelExam `json:"id,omitempty" yaml:"id,omitempty" validate:"required"`
+	}
+)
+
+const (
+	ListExam_OptionTeacherId = iota + 1
+	ListExam_OptionNameLike
+)
+
+type (
+	ListExamReq struct {
+		Options *ListOption `json:"options,omitempty" yaml:"options,omitempty" validate:"required"`
+	}
+
+	ListExamRsp struct {
+		Page  *Page        `json:"page,omitempty" yaml:"page,omitempty"`
+		Exams []*ModelExam `json:"exams,omitempty" yaml:"exams,omitempty"`
+	}
 )

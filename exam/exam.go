@@ -4,31 +4,17 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
 	"github.com/xihui-forever/mutualRead/types"
+	"gorm.io/gorm"
 )
 
-func AddExam(name string, teacherId string) (*types.ModelExam, error) {
-	a := types.ModelExam{
-		Name:      name,
-		TeacherId: teacherId,
-	}
-
+func Add(a *types.ModelExam) (*types.ModelExam, error) {
 	err := db.Create(&a).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
 
-	return &a, nil
-}
-
-func RemoveExam(id uint64) error {
-	var a types.ModelExam
-	err := db.Where("id = ?", id).Delete(&a).Error
-	if err != nil {
-		log.Errorf("err:%v", err)
-		return err
-	}
-	return nil
+	return a, nil
 }
 
 func ChangeExamName(id uint64, name string) error {
@@ -47,36 +33,56 @@ func ChangeExamName(id uint64, name string) error {
 	return nil
 }
 
-func GetExam(id uint64) (*types.ModelExam, error) {
+func Get(id uint64) (*types.ModelExam, error) {
 	var a types.ModelExam
 	err := db.Where("id = ?", id).First(&a).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrExamNotExist
+		}
+
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
 	return &a, nil
 }
 
-func GetExamList(opt *types.ListOption) ([]*types.ModelExam, error) {
-	var a []*types.ModelExam
-
-	//db := types.GetDbFromListOption(opt)
-
-	db := db.Model(&types.ModelExam{})
-
-	for _, option := range opt.Options {
-		switch option.Key {
-		case types.ExamListReq_OptionTeacherId:
-			db.Where("teacher_id = ?", option.Val)
-		default:
-			return nil, types.CreateError(types.ErrInvalidOptionKey)
-		}
-	}
-
-	err := db.Find(&a).Error
+func Set(e *types.ModelExam) (*types.ModelExam, error) {
+	err := db.Save(&e).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
-	return a, nil
+	return e, nil
+}
+
+func Del(id uint64) error {
+	err := db.Where("id = ?", id).Delete(&types.ModelExam{}).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+	return nil
+}
+
+func List(opt *types.ListOption) ([]*types.ModelExam, *types.Page, error) {
+	db := db.Model(&types.ModelExam{})
+
+	for _, option := range opt.Options {
+		switch option.Key {
+		case types.ListExam_OptionTeacherId:
+			db = db.Where("teacher_id = ?", option.Val)
+		case types.ListExam_OptionNameLike:
+			db = db.Where("name like ?", "%"+option.Val+"%")
+		}
+	}
+
+	var exams []*types.ModelExam
+	page, err := opt.Find(db, &exams)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, nil, err
+	}
+
+	return exams, page, nil
 }

@@ -9,7 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddStudent(student types.ModelStudent) (*types.ModelStudent, error) {
+func Add(student types.ModelStudent) (*types.ModelStudent, error) {
+	student.Password = Encrypt(student.Password)
+
 	err := db.Create(&student).Error
 	if err != nil {
 		if types.IsUniqueErr(err) {
