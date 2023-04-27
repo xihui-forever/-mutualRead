@@ -49,6 +49,7 @@ func main() {
 		return
 	}
 
+	goon.WithPermHeader(types.HeaderRoleType)
 	rpc.Load()
 
 	err = goon.ListenAndServe(viper.GetString(config.ListenAddr))

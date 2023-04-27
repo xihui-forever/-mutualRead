@@ -41,7 +41,7 @@ func RemoveAdmin(username string) error {
 	return nil
 }
 
-func GetAdmin(username string) (*types.ModelAdmin, error) {
+func Get(username string) (*types.ModelAdmin, error) {
 	var a types.ModelAdmin
 	err := db.Where("username = ?", username).First(&a).Error
 	if err != nil {
@@ -62,7 +62,7 @@ func CheckPassword(input string, password string) error {
 }
 
 func ChangePassword(username string, oldPwd, newPwd string) error {
-	a, err := GetAdmin(username)
+	a, err := Get(username)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
@@ -88,4 +88,24 @@ func ChangePassword(username string, oldPwd, newPwd string) error {
 
 func Encrypt(pwd string) string {
 	return base64.StdEncoding.EncodeToString([]byte(utils.HmacSha384("620dd0f8d3e5424f99548ed8b9a6a59f", pwd)))
+}
+
+func ResetPassword(username string, password string) error {
+	var a types.ModelAdmin
+	err := db.Where("username = ?", username).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return ErrAdminExist
+		}
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(password)).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	return nil
 }

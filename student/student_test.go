@@ -1,6 +1,7 @@
 package student
 
 import (
+	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
 	"github.com/spf13/viper"
 	"github.com/xihui-forever/mutualRead/config"
@@ -23,7 +24,7 @@ func TestAddStudent(t *testing.T) {
 
 	a := types.ModelStudent{
 		StudentId: "20190001",
-		Password:  Encrypt("111"),
+		Password:  utils.Md5("123456"),
 		Name:      "张三",
 		Email:     "email@123.com",
 	}

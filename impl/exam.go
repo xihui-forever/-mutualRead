@@ -4,16 +4,16 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/mutualRead/exam"
-	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/types"
+	"strconv"
 )
 
 func init() {
-	rpc.Register(types.CmdPathAddExam, AddExam, role.RoleTypeTeacher)
-	rpc.Register(types.CmdPathSetExam, SetExam, role.RoleTypeTeacher)
-	rpc.Register(types.CmdPathDelExam, DelExam, role.RoleTypeTeacher)
-	rpc.Register(types.CmdPathListExam, ListExam, role.RoleTypeTeacher)
+	rpc.Register(types.CmdPathAddExam, AddExam, types.RoleTypeTeacher)
+	rpc.Register(types.CmdPathSetExam, SetExam, types.RoleTypeTeacher)
+	rpc.Register(types.CmdPathDelExam, DelExam, types.RoleTypeTeacher)
+	rpc.Register(types.CmdPathListExam, ListExam, types.RoleTypeTeacher)
 }
 
 func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {
@@ -26,7 +26,7 @@ func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {
 	return exam, nil
 }
 
-func SetExam(ctx *goon.Ctx, req types.SetExamReq) (*types.ModelExam, error) {
+func SetExam(ctx *goon.Ctx, req *types.SetExamReq) (*types.ModelExam, error) {
 	// 存在权限问题，所以要先看下用户是否对的齐
 	teacherId := ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
 
@@ -76,7 +76,7 @@ func DelExam(ctx *goon.Ctx, req *types.ModelExam) error {
 func ListExam(ctx *goon.Ctx, req *types.ListExamReq) (*types.ListExamRsp, error) {
 	req.Options.Options = append(req.Options.Options, types.Option{
 		Key: types.ListExam_OptionTeacherId,
-		Val: ctx.GetReqHeader(types.HeaderUserId),
+		Val: strconv.FormatUint(ctx.GetWithDef(types.HeaderUserId, 0).(uint64), 10),
 	})
 
 	var rsp types.ListExamRsp

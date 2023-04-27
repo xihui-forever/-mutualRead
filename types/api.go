@@ -23,7 +23,8 @@ type Error struct {
 	Code ErrCode `json:"code" yaml:"code,omitempty"`
 	Msg  string  `json:"msg" yaml:"msg,omitempty"`
 
-	Data any `json:"data,omitempty" yaml:"data,omitempty"`
+	Data     any    `json:"data,omitempty" yaml:"data,omitempty"`
+	TranceId string `json:"trance_id,omitempty" yaml:"trance_id,omitempty"`
 }
 
 func (p *Error) Error() string {

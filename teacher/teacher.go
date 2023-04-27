@@ -9,7 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddTeacher(teacher *types.ModelTeacher) (*types.ModelTeacher, error) {
+func Add(teacher *types.ModelTeacher) (*types.ModelTeacher, error) {
+	if teacher.Password == "" {
+		return nil, types.CreateErrorWithMsg(types.ErrInvalidParam, "未填写密码")
+	}
+
 	teacher.Password = Encrypt(teacher.Password)
 
 	err := db.Create(&teacher).Error
@@ -24,7 +28,7 @@ func AddTeacher(teacher *types.ModelTeacher) (*types.ModelTeacher, error) {
 	return teacher, nil
 }
 
-func SetTeacher(t *types.ModelTeacher) (*types.ModelTeacher, error) {
+func Set(t *types.ModelTeacher) (*types.ModelTeacher, error) {
 	err := db.Model(&types.ModelTeacher{}).Omit("password").Save(&t).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -207,6 +211,26 @@ func ListTeacher(opt *types.ListOption) ([]*types.ModelTeacher, *types.Page, err
 
 func DelTeacher(id uint64) error {
 	err := db.Where("id = ?", id).Delete(&types.ModelTeacher{}).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	return nil
+}
+
+func ResetPassword(username, password string) error {
+	var a types.ModelTeacher
+	err := db.Where("username = ?", username).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return ErrTeacherNotExist
+		}
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(password)).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err

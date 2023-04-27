@@ -3,6 +3,7 @@ package rpc
 import (
 	"github.com/bytedance/sonic"
 	"github.com/darabuchi/log"
+	"github.com/darabuchi/utils"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/goon/middleware/session"
 	"github.com/xihui-forever/mutualRead/role"
@@ -28,14 +29,10 @@ func Load() {
 
 	goon.PreUse("/", func(ctx *goon.Ctx) error {
 		path := ctx.Path()
-		flag, err := role.CheckPermission(role.RoleTypePublic, path)
+		flag, err := role.CheckPermission(types.RoleTypePublic, path)
 		if flag {
 			return ctx.Next()
 		}
-		/*if err != role.ErrRolePermExists {
-			log.Errorf("err:%v", err)
-			return err
-		}*/
 
 		sessionBuf, err := session.GetSession(ctx.GetReqHeader("X-Session-Id"))
 		if err != nil {
@@ -51,6 +48,7 @@ func Load() {
 		}
 
 		ctx.SetReqHeader(types.HeaderUserId, strconv.FormatUint(sess.Id, 10))
+		ctx.SetReqHeader(types.HeaderRoleType, strconv.Itoa(sess.RoleType))
 
 		ctx.Set(types.HeaderUserId, sess.Id)
 		ctx.Set(types.HeaderRoleType, sess.RoleType)
@@ -80,16 +78,20 @@ func Post(path string, logic interface{}) {
 
 func HandleError(ctx *goon.Ctx, err error) error {
 	if err == nil {
-		return ctx.Json(&types.Error{})
+		return ctx.Json(&types.Error{
+			TranceId: log.GetTrace(),
+		})
 	}
 
 	if x, ok := err.(*types.Error); ok {
+		x.TranceId = log.GetTrace()
 		return ctx.Json(x)
 	}
 
 	return ctx.Json(&types.Error{
-		Code: types.SysError,
-		Msg:  err.Error(),
+		Code:     types.SysError,
+		Msg:      err.Error(),
+		TranceId: log.GetTrace(),
 	})
 }
 
@@ -162,14 +164,26 @@ func GenHandler(logic any) goon.Handler {
 
 			return func(ctx *goon.Ctx) error {
 				req := reflect.New(x)
-				err := ctx.ParseBody(&req)
+				err := ctx.ParseBody(req.Interface())
 				if err != nil {
 					return err
 				}
 
+				err = utils.Validate(req.Interface())
+				if err != nil {
+					log.Errorf("err:%v", err)
+					return ctx.Json(&types.Error{
+						Code:     types.ErrInvalidParam,
+						Msg:      err.Error(),
+						TranceId: log.GetTrace(),
+					})
+				}
+
 				out := lv.Call([]reflect.Value{reflect.ValueOf(ctx), req})
 				if out[0].IsNil() {
-					return ctx.Json(&types.Error{})
+					return ctx.Json(&types.Error{
+						TranceId: log.GetTrace(),
+					})
 				}
 
 				return HandleError(ctx, out[0].Interface().(error))
@@ -198,8 +212,9 @@ func GenHandler(logic any) goon.Handler {
 			return func(ctx *goon.Ctx) error {
 				out := lv.Call([]reflect.Value{reflect.ValueOf(ctx)})
 				if out[1].IsNil() {
-					return ctx.Json(&types.Error{
-						Data: out[0].Interface(),
+					return ctx.JsonWithPerm(ctx.GetReqHeader(types.HeaderRoleType), &types.Error{
+						TranceId: log.GetTrace(),
+						Data:     out[0].Interface(),
 					})
 				}
 
@@ -237,15 +252,26 @@ func GenHandler(logic any) goon.Handler {
 
 			return func(ctx *goon.Ctx) error {
 				req := reflect.New(in)
-				err := ctx.ParseBody(&req)
+				err := ctx.ParseBody(req.Interface())
 				if err != nil {
 					return err
 				}
 
+				err = utils.Validate(req.Interface())
+				if err != nil {
+					log.Errorf("err:%v", err)
+					return ctx.Json(&types.Error{
+						Code:     types.ErrInvalidParam,
+						Msg:      err.Error(),
+						TranceId: log.GetTrace(),
+					})
+				}
+
 				out := lv.Call([]reflect.Value{reflect.ValueOf(ctx), req})
 				if out[1].IsNil() {
-					return ctx.Json(&types.Error{
-						Data: out[0].Interface(),
+					return ctx.JsonWithPerm(ctx.GetReqHeader(types.HeaderRoleType), &types.Error{
+						TranceId: log.GetTrace(),
+						Data:     out[0].Interface(),
 					})
 				}
 

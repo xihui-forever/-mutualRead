@@ -139,7 +139,7 @@ func ChangePassword(studentId string, oldPwd, newPwd string) error {
 }
 
 func ChangeEmail(id uint64, email string) error {
-	err := db.Where("id = ?", id).Update("email", email).Error
+	err := db.Model(&types.ModelStudent{}).Where("id = ?", id).Update("email", email).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
@@ -207,4 +207,24 @@ func List(opt *types.ListOption) ([]*types.ModelStudent, *types.Page, error) {
 	}
 
 	return list, page, nil
+}
+
+func ResetPassword(username, password string) error {
+	var a types.ModelStudent
+	err := db.Where("username = ?", username).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return ErrStudentNotExist
+		}
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(password)).Error
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	return nil
 }

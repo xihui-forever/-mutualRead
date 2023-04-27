@@ -3,21 +3,20 @@ package impl
 import (
 	"github.com/darabuchi/log"
 	"github.com/xihui-forever/goon"
-	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/student"
 	"github.com/xihui-forever/mutualRead/types"
 )
 
 func init() {
-	rpc.Register(types.CmdPathGetStudent, GetStudent, role.RoleTypeStudent)
-	rpc.Register(types.CmdPathChangeStudent, ChangeStudent, role.RoleTypeStudent)
+	rpc.Register(types.CmdPathGetStudent, GetStudent, types.RoleTypeStudent)
+	rpc.Register(types.CmdPathChangeStudent, ChangeStudent, types.RoleTypeStudent)
 
-	rpc.Register(types.CmdPathAddStudentAdmin, AddStudentAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathGetStudentAdmin, GetStudentAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathSetStudentAdmin, SetStudentAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathDelStudentAdmin, DeleteStudentAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathListStudentAdmin, ListStudentAdmin, role.RoleTypeAdmin)
+	rpc.Register(types.CmdPathAddStudentAdmin, AddStudentAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathGetStudentAdmin, GetStudentAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathSetStudentAdmin, SetStudentAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathDelStudentAdmin, DeleteStudentAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathListStudentAdmin, ListStudentAdmin, types.RoleTypeAdmin)
 }
 
 func GetStudent(ctx *goon.Ctx) (*types.GetStudentRsp, error) {

@@ -3,21 +3,20 @@ package impl
 import (
 	"github.com/darabuchi/log"
 	"github.com/xihui-forever/goon"
-	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/teacher"
 	"github.com/xihui-forever/mutualRead/types"
 )
 
 func init() {
-	rpc.Register(types.CmdPathGetTeacher, GetTeacher, role.RoleTypeTeacher)
-	rpc.Register(types.CmdPathChangeTeacher, ChangeTeacher, role.RoleTypeTeacher)
+	rpc.Register(types.CmdPathGetTeacher, GetTeacher, types.RoleTypeTeacher)
+	rpc.Register(types.CmdPathChangeTeacher, ChangeTeacher, types.RoleTypeTeacher)
 
-	rpc.Register(types.CmdPathGetTeacherAdmin, GetTeacherAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathAddTeacherAdmin, AddTeacherAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathSetTeacherAdmin, SetTeacherAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathDelTeacherAdmin, DelTeacherAdmin, role.RoleTypeAdmin)
-	rpc.Register(types.CmdPathListTeacherAdmin, ListTeacherAdmin, role.RoleTypeAdmin)
+	rpc.Register(types.CmdPathGetTeacherAdmin, GetTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathAddTeacherAdmin, AddTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathSetTeacherAdmin, SetTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathDelTeacherAdmin, DelTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathListTeacherAdmin, ListTeacherAdmin, types.RoleTypeAdmin)
 }
 
 func GetTeacher(ctx *goon.Ctx) (*types.GetTeacherRsp, error) {
@@ -63,7 +62,7 @@ func GetTeacherAdmin(ctx *goon.Ctx, req *types.GetTeacherAdminReq) (*types.GetTe
 
 func AddTeacherAdmin(ctx *goon.Ctx, req *types.AddTeacherAdminReq) (*types.AddTeacherAdminRsp, error) {
 	var rsp types.AddTeacherAdminRsp
-	teacher, err := teacher.AddTeacher(req.Teacher)
+	teacher, err := teacher.Add(req.Teacher)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -75,7 +74,7 @@ func AddTeacherAdmin(ctx *goon.Ctx, req *types.AddTeacherAdminReq) (*types.AddTe
 
 func SetTeacherAdmin(ctx *goon.Ctx, req *types.AddTeacherAdminReq) (*types.AddTeacherAdminRsp, error) {
 	var rsp types.AddTeacherAdminRsp
-	teacher, err := teacher.SetTeacher(req.Teacher)
+	teacher, err := teacher.Set(req.Teacher)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err

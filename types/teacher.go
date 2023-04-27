@@ -14,7 +14,7 @@ type ModelTeacher struct {
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_teacher_teacher_id,unique"`
 
 	TeacherId string `json:"teacher_id,omitempty" gorm:"column:teacher_id;not null;index:idx_teacher_teacher_id,unique"`
-	Password  string `json:"password,omitempty" gorm:"column:password;not null"`
+	Password  string `json:"password,omitempty" gorm:"column:password;not null" perm:"read:4"`
 	Name      string `json:"name,omitempty" gorm:"column:name;not null"`
 	Email     string `json:"email,omitempty" gorm:"column:email;not null"`
 }
