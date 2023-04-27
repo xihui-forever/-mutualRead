@@ -20,7 +20,7 @@ func init() {
 }
 
 func GetStudent(ctx *goon.Ctx) (*types.GetStudentRsp, error) {
-	student, err := student.Get(ctx.GetWithDef(types.HeaderUserId, 0).(uint64))
+	student, err := student.Get(ctx.GetUint64(types.HeaderUserId))
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -34,7 +34,7 @@ func GetStudent(ctx *goon.Ctx) (*types.GetStudentRsp, error) {
 func ChangeStudent(ctx *goon.Ctx, req *types.ChangeStudentReq) error {
 	switch req.ChangeType {
 	case types.StudentChangeTypeEmail:
-		err := student.ChangeEmail(ctx.GetWithDef(types.HeaderUserId, 0).(uint64), req.Email)
+		err := student.ChangeEmail(ctx.GetUint64(types.HeaderUserId), req.Email)
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err

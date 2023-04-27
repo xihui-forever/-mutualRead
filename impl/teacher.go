@@ -22,7 +22,7 @@ func init() {
 func GetTeacher(ctx *goon.Ctx) (*types.GetTeacherRsp, error) {
 	var rsp types.GetTeacherRsp
 
-	teacher, err := teacher.Get(ctx.GetWithDef(types.HeaderUserId, 0).(uint64))
+	teacher, err := teacher.Get(ctx.GetUint64(types.HeaderUserId))
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -35,7 +35,7 @@ func GetTeacher(ctx *goon.Ctx) (*types.GetTeacherRsp, error) {
 func ChangeTeacher(ctx *goon.Ctx, req *types.ChangeTeacherReq) error {
 	switch req.ChangeType {
 	case types.TeacherChangeTypeEmail:
-		err := teacher.ChangeEmail(ctx.GetWithDef(types.HeaderUserId, 0).(uint64), req.Email)
+		err := teacher.ChangeEmail(ctx.GetUint64(types.HeaderUserId), req.Email)
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err

@@ -23,7 +23,7 @@ var (
 )
 
 func init() {
-	LoginHandlerMap[types.RoleTypeAdmin] = func(username string, password string) (LoginBaseRsp, error) {
+	LoginHandlerMap[types.RoleTypeTeacher] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := teacher.GetTeacher(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
@@ -40,7 +40,7 @@ func init() {
 	}
 	ResetPasswordMap[types.RoleTypeAdmin] = admin.ResetPassword
 
-	LoginHandlerMap[types.RoleTypeTeacher] = func(username string, password string) (LoginBaseRsp, error) {
+	LoginHandlerMap[types.RoleTypeAdmin] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := admin.Get(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
@@ -107,7 +107,7 @@ func LoginHandler(ctx *goon.Ctx, req *types.LoginReq) (*types.LoginRsp, error) {
 }
 
 func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
-	switch ctx.GetWithDef(types.HeaderRoleType, types.RoleTypePublic).(int) {
+	switch ctx.GetInt(types.HeaderRoleType) {
 	case types.RoleTypeAdmin:
 		logic, ok := ResetPasswordMap[req.RoleType]
 		if !ok {
@@ -121,7 +121,7 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 			return err
 		}
 	case types.RoleTypeStudent:
-		s, err := student.Get(ctx.GetWithDef(types.HeaderUserId, 0).(uint64))
+		s, err := student.Get(ctx.GetUint64(types.HeaderUserId))
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err
@@ -129,7 +129,7 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 
 		return student.ResetPassword(s.StudentId, req.Password)
 	case types.RoleTypeTeacher:
-		s, err := teacher.Get(ctx.GetWithDef(types.HeaderUserId, 0).(uint64))
+		s, err := teacher.Get(ctx.GetUint64(types.HeaderUserId))
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err

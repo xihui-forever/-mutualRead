@@ -17,7 +17,7 @@ func init() {
 }
 
 func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {
-	req.Exam.TeacherId = ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
+	req.Exam.TeacherId = ctx.GetUint64(types.HeaderUserId)
 	exam, err := exam.Add(req.Exam)
 	if err != nil {
 		log.Errorf("err:%s", err)
@@ -28,7 +28,7 @@ func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {
 
 func SetExam(ctx *goon.Ctx, req *types.SetExamReq) (*types.ModelExam, error) {
 	// 存在权限问题，所以要先看下用户是否对的齐
-	teacherId := ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
+	teacherId := ctx.GetUint64(types.HeaderUserId)
 
 	e, err := exam.Get(req.Exam.Id)
 	if err != nil {
@@ -52,7 +52,7 @@ func SetExam(ctx *goon.Ctx, req *types.SetExamReq) (*types.ModelExam, error) {
 
 func DelExam(ctx *goon.Ctx, req *types.ModelExam) error {
 	// 存在权限问题，所以要先看下用户是否对的齐
-	teacherId := ctx.GetWithDef(types.HeaderUserId, 0).(uint64)
+	teacherId := ctx.GetUint64(types.HeaderUserId)
 
 	e, err := exam.Get(req.Id)
 	if err != nil {
@@ -76,7 +76,7 @@ func DelExam(ctx *goon.Ctx, req *types.ModelExam) error {
 func ListExam(ctx *goon.Ctx, req *types.ListExamReq) (*types.ListExamRsp, error) {
 	req.Options.Options = append(req.Options.Options, types.Option{
 		Key: types.ListExam_OptionTeacherId,
-		Val: strconv.FormatUint(ctx.GetWithDef(types.HeaderUserId, 0).(uint64), 10),
+		Val: strconv.FormatUint(ctx.GetUint64(types.HeaderUserId), 10),
 	})
 
 	var rsp types.ListExamRsp

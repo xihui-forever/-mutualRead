@@ -6,6 +6,13 @@ import (
 	"gorm.io/plugin/soft_delete"
 )
 
+const (
+	AppealStateWaitReviewer = iota + 1 // 等待阅卷人审核
+	AppealStateWaitTeacher             // 等待老师审核
+	AppealStateFinish                  // 申诉结束
+	AppealStateRecall                  // 申诉撤回
+)
+
 type ModelAppeal struct {
 	Id uint64 `json:"id,omitempty" gorm:"primaryKey;autoIncrement:true;column:id;not null"`
 
@@ -37,3 +44,141 @@ func (m *ModelAppeal) Value() (driver.Value, error) {
 func (m *ModelAppeal) TableName() string {
 	return "goon_appeal"
 }
+
+const (
+	CmdPathAddAppeal          = "/appeal/add"
+	CmdPathListAppealTeacher  = "/teacher/appeal/list"
+	CmdPathListAppealExaminer = "/examiner/appeal/list"
+	CmdPathListAppealReviewer = "/reviewer/appeal/list"
+	CmdPathGetAppealTeacher   = "/teacher/appeal/get"
+	CmdPathGetAppealExaminer  = "/examiner/appeal/get"
+	CmdPathGetAppealReviewer  = "/reviewer/appeal/get"
+
+	CmdPathSetAppealExaminer = "/examiner/appeal/set"
+	CmdPathSetAppealReviewer = "/reviewer/appeal/set"
+	CmdPathSetAppealTeacher  = "/teacher/appeal/set"
+	CmdPathRecallAppeal      = "/appeal/recall"
+)
+
+type (
+	AddAppealReq struct {
+		PaperId    uint64 `json:"paper_id,omitempty" validate:"required"`
+		AppealInfo string `json:"appeal_info,omitempty" validate:"required"`
+	}
+
+	AddAppealRsp struct {
+		Appeal *ModelAppeal `json:"appeal,omitempty"`
+	}
+)
+
+const (
+	ListAppeal_OptionTeacherId = iota + 1
+	ListAppeal_OptionExaminerId
+	ListAppeal_OptionReviewerId
+	ListAppeal_OptionPaperId
+	ListAppeal_OptionId
+	ListAppeal_OptionStates
+)
+
+type (
+	ListAppealTeacherReq struct {
+		Options   *ListOption `json:"options,omitempty" validate:"required"`
+		ShowPaper bool        `json:"show_paper"`
+	}
+
+	ListAppealTeacherRsp struct {
+		Page     *Page                  `json:"page,omitempty"`
+		List     []*ModelAppeal         `json:"list,omitempty"`
+		PaperMap map[uint64]*ModelPaper `json:"paper_map,omitempty"`
+	}
+)
+
+type (
+	ListAppealExaminerReq struct {
+		Options   *ListOption `json:"options,omitempty" validate:"required"`
+		ShowPaper bool        `json:"show_paper"`
+	}
+
+	ListAppealExaminerRsp struct {
+		Page     *Page                  `json:"page,omitempty"`
+		List     []*ModelAppeal         `json:"list,omitempty"`
+		PaperMap map[uint64]*ModelPaper `json:"paper_map,omitempty"`
+	}
+)
+
+type (
+	ListAppealReviewerReq struct {
+		Options   *ListOption `json:"options,omitempty" validate:"required"`
+		ShowPaper bool        `json:"show_paper"`
+	}
+
+	ListAppealReviewerRsp struct {
+		Page     *Page                  `json:"page,omitempty"`
+		List     []*ModelAppeal         `json:"list,omitempty"`
+		PaperMap map[uint64]*ModelPaper `json:"paper_map,omitempty"`
+	}
+)
+
+type (
+	GetAppealTeacherReq struct {
+		Id        uint64 `json:"id,omitempty" validate:"required"`
+		ShowPaper bool   `json:"show_paper"`
+	}
+
+	GetAppealTeacherRsp struct {
+		Appeal *ModelAppeal `json:"appeal,omitempty"`
+		Paper  *ModelPaper  `json:"paper,omitempty"`
+	}
+)
+
+type (
+	GetAppealExaminerReq struct {
+		Id        uint64 `json:"id,omitempty" validate:"required"`
+		ShowPaper bool   `json:"show_paper"`
+	}
+
+	GetAppealExaminerRsp struct {
+		Appeal *ModelAppeal `json:"appeal,omitempty"`
+		Paper  *ModelPaper  `json:"paper,omitempty"`
+	}
+)
+
+type (
+	GetAppealReviewerReq struct {
+		Id        uint64 `json:"id,omitempty" validate:"required"`
+		ShowPaper bool   `json:"show_paper"`
+	}
+
+	GetAppealReviewerRsp struct {
+		Appeal *ModelAppeal `json:"appeal,omitempty"`
+		Paper  *ModelPaper  `json:"paper,omitempty"`
+	}
+)
+
+type (
+	SetAppealExaminerReq struct {
+		AppealId   uint64 `json:"appeal_id,omitempty" validate:"required"`
+		AppealInfo string `json:"appeal_info,omitempty"`
+	}
+)
+
+type (
+	SetAppealReviewerReq struct {
+		AppealId   uint64 `json:"appeal_id,omitempty" validate:"required"`
+		ReviewInfo string `json:"review_info,omitempty"`
+	}
+)
+
+type (
+	SetAppealTeacherReq struct {
+		AppealId     uint64 `json:"appeal_id,omitempty" validate:"required"`
+		Grade        uint32 `json:"grade,omitempty" validate:"required"`
+		AppealResult string `json:"appeal_result,omitempty"`
+	}
+)
+
+type (
+	RecallAppealReq struct {
+		AppealId uint64 `json:"appeal_id,omitempty" validate:"required"`
+	}
+)

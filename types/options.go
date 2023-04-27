@@ -7,8 +7,8 @@ import (
 
 type (
 	Option struct {
-		Key int    `json:"key"`
-		Val string `json:"val"`
+		Key int `json:"key"`
+		Val any `json:"val"`
 	}
 
 	ListOption struct {

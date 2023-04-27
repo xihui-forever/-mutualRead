@@ -191,9 +191,9 @@ func ListTeacher(opt *types.ListOption) ([]*types.ModelTeacher, *types.Page, err
 		case types.ListTeacher_OptionTeacherId:
 			db = db.Where("teacher_id = ?", option.Val)
 		case types.ListTeacher_OptionNameLike:
-			db = db.Where("name like ?", "%"+option.Val+"%")
+			db = db.Where("name like %?%", option.Val)
 		case types.ListTeacher_OptionEmailLike:
-			db = db.Where("email like ?", "%"+option.Val+"%")
+			db = db.Where("email like %?%", option.Val)
 		default:
 			log.Errorf("unknown option key:%v", option.Key)
 		}
@@ -221,7 +221,7 @@ func DelTeacher(id uint64) error {
 
 func ResetPassword(username, password string) error {
 	var a types.ModelTeacher
-	err := db.Where("username = ?", username).First(&a).Error
+	err := db.Where("teacher_id = ?", username).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return ErrTeacherNotExist

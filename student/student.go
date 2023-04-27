@@ -191,9 +191,9 @@ func List(opt *types.ListOption) ([]*types.ModelStudent, *types.Page, error) {
 		case types.ListStudent_OptionStudentId:
 			db = db.Where("student_id = ?", option.Val)
 		case types.ListStudent_OptionNameLike:
-			db = db.Where("name like ?", "%"+option.Val+"%")
+			db = db.Where("name like %?%", option.Val)
 		case types.ListStudent_OptionEmailLike:
-			db = db.Where("email like ?", "%"+option.Val+"%")
+			db = db.Where("email like %?%", option.Val)
 		default:
 			log.Errorf("unknown option:%v", option)
 		}
@@ -211,7 +211,7 @@ func List(opt *types.ListOption) ([]*types.ModelStudent, *types.Page, error) {
 
 func ResetPassword(username, password string) error {
 	var a types.ModelStudent
-	err := db.Where("username = ?", username).First(&a).Error
+	err := db.Where("student_id = ?", username).First(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return ErrStudentNotExist
