@@ -2,10 +2,13 @@ package impl
 
 import (
 	"github.com/darabuchi/log"
+	"github.com/darabuchi/utils"
+	"github.com/darabuchi/utils/db"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/mutualRead/exam"
 	"github.com/xihui-forever/mutualRead/paper"
 	"github.com/xihui-forever/mutualRead/rpc"
+	"github.com/xihui-forever/mutualRead/student"
 	"github.com/xihui-forever/mutualRead/types"
 	"strconv"
 )
@@ -23,7 +26,7 @@ func init() {
 func AddPaper(ctx *goon.Ctx, req *types.AddPaperReq) (*types.AddPaperRsp, error) {
 	var rsp types.AddPaperRsp
 
-	e, err := exam.Get(req.Paper.ExamId)
+	e, err := exam.Get(req.ExamId)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -33,9 +36,34 @@ func AddPaper(ctx *goon.Ctx, req *types.AddPaperReq) (*types.AddPaperRsp, error)
 		return nil, exam.ErrExamNotExist
 	}
 
-	req.Paper.TeacherId = e.Id
+	p := &types.ModelPaper{
+		ExamId:    e.Id,
+		TeacherId: e.TeacherId,
+		Grade:     req.Grade,
+		ImgUrl:    req.ImgUrl,
+	}
 
-	rsp.Paper, err = paper.Add(req.Paper)
+	{
+		s, err := student.GetByStrId(req.ExaminerId)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		p.ExaminerId = s.Id
+	}
+
+	{
+		s, err := student.GetByStrId(req.ReviewerId)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		p.ReviewerId = s.Id
+	}
+
+	rsp.Paper, err = paper.Add(p)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -61,6 +89,20 @@ func ListPaperTeacher(ctx *goon.Ctx, req *types.ListPaperTeacherReq) (*types.Lis
 		return nil, err
 	}
 
+	if req.ShowExam && len(rsp.PaperList) > 0 {
+		var exams []*types.ModelExam
+		err = db.Where("id in (?)", utils.PluckUint64(rsp.PaperList, "ExamId")).Find(&exams).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		rsp.ExamMap = make(map[uint64]*types.ModelExam, len(exams))
+		for _, exam := range exams {
+			rsp.ExamMap[exam.Id] = exam
+		}
+	}
+
 	return &rsp, nil
 }
 
@@ -77,6 +119,20 @@ func ListPaperExaminer(ctx *goon.Ctx, req *types.ListPaperExaminerReq) (*types.L
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
+	}
+
+	if req.ShowExam && len(rsp.PaperList) > 0 {
+		var exams []*types.ModelExam
+		err = db.Where("id in (?)", utils.PluckUint64(rsp.PaperList, "ExamId")).Find(&exams).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		rsp.ExamMap = make(map[uint64]*types.ModelExam, len(exams))
+		for _, exam := range exams {
+			rsp.ExamMap[exam.Id] = exam
+		}
 	}
 
 	return &rsp, nil

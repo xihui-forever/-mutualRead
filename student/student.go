@@ -165,6 +165,20 @@ func Get(id uint64) (*types.ModelStudent, error) {
 	return &a, nil
 }
 
+func GetByStrId(id string) (*types.ModelStudent, error) {
+	var a types.ModelStudent
+	err := db.Where("student_id = ?", id).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrStudentNotExist
+		}
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	return &a, nil
+}
+
 func Set(s *types.ModelStudent) (*types.ModelStudent, error) {
 	err := db.Model(&types.ModelStudent{}).Omit("password").Save(s).Error
 	if err != nil {
