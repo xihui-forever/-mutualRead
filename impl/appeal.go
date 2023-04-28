@@ -4,12 +4,15 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
+	"github.com/darabuchi/utils/mq"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/mutualRead/appeal"
 	"github.com/xihui-forever/mutualRead/paper"
 	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/types"
+	"gorm.io/gorm"
 	"strconv"
+	"time"
 )
 
 func init() {
@@ -21,6 +24,10 @@ func init() {
 	rpc.Register(types.CmdPathGetAppealExaminer, GetAppealExaminer, types.RoleTypeStudent)
 	rpc.Register(types.CmdPathGetAppealReviewer, GetAppealReviewer, types.RoleTypeStudent)
 	rpc.Register(types.CmdPathGetAppealTeacher, GetAppealTeacher, types.RoleTypeTeacher)
+
+	rpc.Register(types.CmdPathSetAppealExaminer, SetAppealExaminer, types.RoleTypeStudent)
+	rpc.Register(types.CmdPathSetAppealReviewer, SetAppealReviewer, types.RoleTypeStudent)
+	rpc.Register(types.CmdPathSetAppealTeacher, SetAppealTeacher, types.RoleTypeTeacher)
 }
 
 func AddAppeal(ctx *goon.Ctx, req *types.AddAppealReq) (*types.AddAppealRsp, error) {
@@ -47,6 +54,13 @@ func AddAppeal(ctx *goon.Ctx, req *types.AddAppealReq) (*types.AddAppealRsp, err
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
+	}
+
+	_, err = mq.Publish(types.EventAppealChangedTopic, types.EventAppealChanged{
+		Appeal: a,
+	})
+	if err != nil {
+		log.Errorf("err:%v", err)
 	}
 
 	rsp.Appeal = a
@@ -258,4 +272,186 @@ func GetAppealExaminer(ctx *goon.Ctx, req *types.GetAppealExaminerReq) (*types.G
 	}
 
 	return &rsp, nil
+}
+
+func SetAppealExaminer(ctx *goon.Ctx, req *types.SetAppealExaminerReq) error {
+	a, err := appeal.Get(req.AppealId)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if a.ExaminerId != ctx.GetUint64(types.HeaderUserId) {
+		return appeal.ErrAppealNotExist
+	}
+
+	if a.State != types.AppealStateWaitReviewer {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	res := db.Model(&types.ModelAppeal{}).
+		Where("id = ?", req.AppealId).
+		Where("state = ?", types.AppealStateWaitReviewer).
+		Updates(map[string]any{
+			"change_at":   time.Now().Unix(),
+			"appeal_info": req.AppealInfo,
+		})
+	if res.Error != nil {
+		log.Errorf("err:%v", res.Error)
+		return res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	return nil
+}
+
+func SetAppealReviewer(ctx *goon.Ctx, req *types.SetAppealReviewerReq) error {
+	a, err := appeal.Get(req.AppealId)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if a.ReviewerId != ctx.GetUint64(types.HeaderUserId) {
+		return appeal.ErrAppealNotExist
+	}
+
+	if a.State != types.AppealStateWaitReviewer {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	res := db.Model(&types.ModelAppeal{}).
+		Where("id = ?", req.AppealId).
+		Where("state = ?", types.AppealStateWaitReviewer).
+		Updates(map[string]any{
+			"state": types.AppealStateWaitTeacher,
+
+			"reviewer_at": time.Now().Unix(),
+			"review_info": req.ReviewInfo,
+		})
+	if res.Error != nil {
+		log.Errorf("err:%v", res.Error)
+		return res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	a, err = appeal.Get(req.AppealId)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	_, err = mq.Publish(types.EventAppealChangedTopic, types.EventAppealChanged{
+		Appeal: a,
+	})
+	if err != nil {
+		log.Errorf("err:%v", err)
+	}
+
+	return nil
+}
+
+func SetAppealTeacher(ctx *goon.Ctx, req *types.SetAppealTeacherReq) error {
+	a, err := appeal.Get(req.AppealId)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if a.TeacherId != ctx.GetUint64(types.HeaderUserId) {
+		return appeal.ErrAppealNotExist
+	}
+
+	if a.State != types.AppealStateWaitTeacher {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		res := tx.Model(&types.ModelAppeal{}).
+			Where("id = ?", req.AppealId).
+			Where("state = ?", types.AppealStateWaitTeacher).
+			Updates(map[string]any{
+				"state": types.AppealStateFinish,
+
+				"result_at":     time.Now().Unix(),
+				"appeal_result": req.AppealResult,
+				"grade":         req.Grade,
+			})
+		if res.Error != nil {
+			log.Errorf("err:%v", res.Error)
+			return res.Error
+		}
+
+		if res.RowsAffected == 0 {
+			return appeal.ErrAppealAlreadyHanded
+		}
+
+		err = tx.Model(&types.ModelPaper{}).
+			Where("id = ?", a.PaperId).
+			Update("grade", gorm.Expr("grade += ?", req.Grade)).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	a, err = appeal.Get(req.AppealId)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	_, err = mq.Publish(types.EventAppealChangedTopic, types.EventAppealChanged{
+		Appeal: a,
+	})
+	if err != nil {
+		log.Errorf("err:%v", err)
+	}
+
+	return nil
+}
+
+func RecallAppeal(ctx *goon.Ctx, req *types.RecallAppealReq) error {
+	a, err := appeal.Get(req.AppealId)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	if a.ExaminerId != ctx.GetUint64(types.HeaderUserId) {
+		return appeal.ErrAppealNotExist
+	}
+
+	if a.State != types.AppealStateWaitReviewer {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	res := db.Model(&types.ModelAppeal{}).
+		Where("id = ?", req.AppealId).
+		Where("state = ?", types.AppealStateWaitReviewer).
+		Updates(map[string]any{
+			"state": types.AppealStateRecall,
+		})
+	if res.Error != nil {
+		log.Errorf("err:%v", res.Error)
+		return res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return appeal.ErrAppealAlreadyHanded
+	}
+
+	return nil
 }

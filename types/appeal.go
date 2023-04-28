@@ -31,6 +31,7 @@ type ModelAppeal struct {
 	AppealInfo   string `json:"appeal_info,omitempty" gorm:"column:appeal_info;not null"`
 	ReviewInfo   string `json:"review_info,omitempty" gorm:"column:review_info"`
 	AppealResult string `json:"appeal_result,omitempty" gorm:"column:appeal_result"`
+	Grade        int32  `json:"grade,omitempty" gorm:"column:grade;not null"`
 }
 
 func (m *ModelAppeal) Scan(value interface{}) error {
@@ -172,7 +173,7 @@ type (
 type (
 	SetAppealTeacherReq struct {
 		AppealId     uint64 `json:"appeal_id,omitempty" validate:"required"`
-		Grade        uint32 `json:"grade,omitempty" validate:"required"`
+		Grade        int32  `json:"grade,omitempty" validate:"required"`
 		AppealResult string `json:"appeal_result,omitempty"`
 	}
 )
@@ -180,5 +181,11 @@ type (
 type (
 	RecallAppealReq struct {
 		AppealId uint64 `json:"appeal_id,omitempty" validate:"required"`
+	}
+)
+
+type (
+	EventAppealChanged struct {
+		Appeal *ModelAppeal `json:"appeal,omitempty" yaml:"appeal,omitempty"`
 	}
 )

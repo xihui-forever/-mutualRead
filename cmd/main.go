@@ -1,9 +1,13 @@
 package main
 
 import (
+	"github.com/darabuchi/utils"
+	"github.com/darabuchi/utils/mq"
+	"github.com/xihui-forever/mutualRead/appeal"
 	_ "github.com/xihui-forever/mutualRead/impl"
 	"github.com/xihui-forever/mutualRead/rpc"
 	_ "github.com/xihui-forever/mutualRead/teacher"
+	"path/filepath"
 
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/db"
@@ -17,11 +21,21 @@ import (
 )
 
 func main() {
+	var err error
 	log.SetPrefixMsg("mutualRead")
 
 	config.Load()
 
-	err := db.Connect(db.Config{
+	err = mq.Start(&mq.Option{
+		DataPath:     filepath.Join(utils.GetExecPath(), "data"),
+		MemQueueSize: 1,
+	})
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return
+	}
+
+	err = db.Connect(db.Config{
 		Dsn:      viper.GetString(config.DbDsn),
 		Database: db.MySql,
 	},
@@ -51,6 +65,12 @@ func main() {
 
 	goon.WithPermHeader(types.HeaderRoleType)
 	rpc.Load()
+
+	err = appeal.Load()
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return
+	}
 
 	err = goon.ListenAndServe(viper.GetString(config.ListenAddr))
 	if err != nil {

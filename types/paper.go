@@ -71,27 +71,31 @@ const (
 
 type (
 	ListPaperTeacherReq struct {
-		Options  *ListOption `json:"options,omitempty"`
-		ShowExam bool        `json:"show_exam,omitempty"`
+		Options     *ListOption `json:"options,omitempty"`
+		ShowExam    bool        `json:"show_exam,omitempty"`
+		ShowStudent bool        `json:"show_student,omitempty"`
 	}
 
 	ListPaperTeacherRsp struct {
-		Page      *Page                 `json:"page,omitempty"`
-		PaperList []*ModelPaper         `json:"paper_list,omitempty"`
-		ExamMap   map[uint64]*ModelExam `json:"exam_map,omitempty"`
+		Page       *Page                    `json:"page,omitempty"`
+		PaperList  []*ModelPaper            `json:"paper_list,omitempty"`
+		ExamMap    map[uint64]*ModelExam    `json:"exam_map,omitempty"`
+		StudentMap map[uint64]*ModelStudent `json:"student_map,omitempty"`
 	}
 )
 
 type (
 	ListPaperExaminerReq struct {
-		Options  *ListOption `json:"options,omitempty"`
-		ShowExam bool        `json:"show_exam,omitempty"`
+		Options     *ListOption `json:"options,omitempty"`
+		ShowExam    bool        `json:"show_exam,omitempty"`
+		ShowStudent bool        `json:"show_student,omitempty"`
 	}
 
 	ListPaperExaminerRsp struct {
-		Page      *Page                 `json:"page,omitempty"`
-		PaperList []*ModelPaper         `json:"paper_list,omitempty"`
-		ExamMap   map[uint64]*ModelExam `json:"exam_map,omitempty"`
+		Page       *Page                    `json:"page,omitempty"`
+		PaperList  []*ModelPaper            `json:"paper_list,omitempty"`
+		ExamMap    map[uint64]*ModelExam    `json:"exam_map,omitempty"`
+		StudentMap map[uint64]*ModelStudent `json:"student_map,omitempty"`
 	}
 )
 

@@ -242,3 +242,16 @@ func ListAppeal(opts *types.ListOption) ([]*types.ModelAppeal, *types.Page, erro
 
 	return list, page, nil
 }
+
+func Get(id uint64) (*types.ModelAppeal, error) {
+	var a types.ModelAppeal
+	err := db.Where("id = ?", id).First(&a).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrAppealNotExist
+		}
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+	return &a, nil
+}

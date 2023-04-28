@@ -72,7 +72,7 @@ func GetPaperListAdmin() (*[]types.ModelPaper, error) {
 
 func GetPaperListExaminer(examiner uint64) (*[]types.ModelPaper, error) {
 	var a []types.ModelPaper
-	err := db.Where("examiner = ?", examiner).Find(&a).Error
+	err := db.Where("examiner_id = ?", examiner).Find(&a).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrPaperNotExist
@@ -104,9 +104,9 @@ func ListPaper(opts *types.ListOption) ([]*types.ModelPaper, *types.Page, error)
 		case types.ListPaper_OptionExamId:
 			db = db.Where("exam_id = ?", option.Val)
 		case types.ListPaper_OptionExaminerId:
-			db = db.Where("examiner = ?", option.Val)
+			db = db.Where("examiner_id = ?", option.Val)
 		case types.ListPaper_OptionReviewerId:
-			db = db.Where("reviewer = ?", option.Val)
+			db = db.Where("reviewer_id = ?", option.Val)
 		case types.ListPaper_OptionTeacherId:
 			db = db.Where("teacher_id = ?", option.Val)
 		}

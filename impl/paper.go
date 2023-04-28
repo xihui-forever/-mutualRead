@@ -4,6 +4,7 @@ import (
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
+	"github.com/elliotchance/pie/v2"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/mutualRead/exam"
 	"github.com/xihui-forever/mutualRead/paper"
@@ -103,6 +104,26 @@ func ListPaperTeacher(ctx *goon.Ctx, req *types.ListPaperTeacherReq) (*types.Lis
 		}
 	}
 
+	if req.ShowStudent && len(rsp.PaperList) > 0 {
+		var studentIds []uint64
+		studentIds = append(studentIds, utils.PluckUint64(rsp.PaperList, "ExaminerId")...)
+		studentIds = append(studentIds, utils.PluckUint64(rsp.PaperList, "ReviewerId")...)
+
+		studentIds = pie.Unique(studentIds)
+
+		var students []*types.ModelStudent
+		err = db.Where("id in (?)", studentIds).Find(&students).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		rsp.StudentMap = make(map[uint64]*types.ModelStudent, len(students))
+		for _, s := range students {
+			rsp.StudentMap[s.Id] = s
+		}
+	}
+
 	return &rsp, nil
 }
 
@@ -110,7 +131,7 @@ func ListPaperExaminer(ctx *goon.Ctx, req *types.ListPaperExaminerReq) (*types.L
 	var rsp types.ListPaperExaminerRsp
 
 	req.Options.Options = append(req.Options.Options, types.Option{
-		Key: types.ListPaper_OptionTeacherId,
+		Key: types.ListPaper_OptionExaminerId,
 		Val: strconv.FormatUint(ctx.GetUint64(types.HeaderUserId), 10),
 	})
 
@@ -132,6 +153,26 @@ func ListPaperExaminer(ctx *goon.Ctx, req *types.ListPaperExaminerReq) (*types.L
 		rsp.ExamMap = make(map[uint64]*types.ModelExam, len(exams))
 		for _, exam := range exams {
 			rsp.ExamMap[exam.Id] = exam
+		}
+	}
+
+	if req.ShowStudent && len(rsp.PaperList) > 0 {
+		var studentIds []uint64
+		studentIds = append(studentIds, utils.PluckUint64(rsp.PaperList, "ExaminerId")...)
+		studentIds = append(studentIds, utils.PluckUint64(rsp.PaperList, "ReviewerId")...)
+
+		studentIds = pie.Unique(studentIds)
+
+		var students []*types.ModelStudent
+		err = db.Where("id in (?)", studentIds).Find(&students).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		rsp.StudentMap = make(map[uint64]*types.ModelStudent, len(students))
+		for _, s := range students {
+			rsp.StudentMap[s.Id] = s
 		}
 	}
 
