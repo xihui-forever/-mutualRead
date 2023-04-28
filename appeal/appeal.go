@@ -16,12 +16,10 @@ func AddAppeal(appeal *types.ModelAppeal) (*types.ModelAppeal, error) {
 			types.AppealStateFinish,
 			types.AppealStateRecall,
 		}).Scan(&id).Error
-	if err == gorm.ErrRecordNotFound {
-
-	} else if err != nil {
+	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
-	} else {
+	} else if id > 0 {
 		return nil, ErrAppealExist
 	}
 
@@ -213,7 +211,7 @@ func AddAppeal(appeal *types.ModelAppeal) (*types.ModelAppeal, error) {
 //	return nil
 //}
 
-func ListAppeal(opts *types.ListOption) ([]*types.ModelAppeal, *types.Page, error) {
+func List(opts *types.ListOption) ([]*types.ModelAppeal, *types.Page, error) {
 	db := db.Model(&types.ModelAppeal{})
 
 	for _, option := range opts.Options {

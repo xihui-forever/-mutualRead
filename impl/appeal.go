@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"fmt"
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
@@ -11,6 +12,7 @@ import (
 	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
+	"math"
 	"strconv"
 	"time"
 )
@@ -28,6 +30,8 @@ func init() {
 	rpc.Register(types.CmdPathSetAppealExaminer, SetAppealExaminer, types.RoleTypeStudent)
 	rpc.Register(types.CmdPathSetAppealReviewer, SetAppealReviewer, types.RoleTypeStudent)
 	rpc.Register(types.CmdPathSetAppealTeacher, SetAppealTeacher, types.RoleTypeTeacher)
+
+	rpc.Register(types.CmdPathRecallAppeal, RecallAppeal, types.RoleTypeStudent)
 }
 
 func AddAppeal(ctx *goon.Ctx, req *types.AddAppealReq) (*types.AddAppealRsp, error) {
@@ -46,6 +50,7 @@ func AddAppeal(ctx *goon.Ctx, req *types.AddAppealReq) (*types.AddAppealRsp, err
 	a, err := appeal.AddAppeal(&types.ModelAppeal{
 		State:      types.AppealStateWaitReviewer,
 		PaperId:    p.Id,
+		ExamId:     p.ExamId,
 		ExaminerId: p.ExaminerId,
 		ReviewerId: p.ReviewerId,
 		TeacherId:  p.TeacherId,
@@ -75,7 +80,7 @@ func ListAppealExaminer(ctx *goon.Ctx, req *types.ListAppealExaminerReq) (*types
 	})
 
 	var err error
-	rsp.List, rsp.Page, err = appeal.ListAppeal(req.Options)
+	rsp.List, rsp.Page, err = appeal.List(req.Options)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -106,7 +111,7 @@ func ListAppealReviewer(ctx *goon.Ctx, req *types.ListAppealReviewerReq) (*types
 	})
 
 	var err error
-	rsp.List, rsp.Page, err = appeal.ListAppeal(req.Options)
+	rsp.List, rsp.Page, err = appeal.List(req.Options)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -132,12 +137,12 @@ func ListAppealReviewer(ctx *goon.Ctx, req *types.ListAppealReviewerReq) (*types
 func ListAppealTeacher(ctx *goon.Ctx, req *types.ListAppealTeacherReq) (*types.ListAppealTeacherRsp, error) {
 	var rsp types.ListAppealTeacherRsp
 	req.Options.Options = append(req.Options.Options, types.Option{
-		Key: types.ListPaper_OptionTeacherId,
+		Key: types.ListAppeal_OptionTeacherId,
 		Val: strconv.FormatUint(ctx.GetUint64(types.HeaderUserId), 10),
 	})
 
 	var err error
-	rsp.List, rsp.Page, err = appeal.ListAppeal(req.Options)
+	rsp.List, rsp.Page, err = appeal.List(req.Options)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -163,7 +168,7 @@ func ListAppealTeacher(ctx *goon.Ctx, req *types.ListAppealTeacherReq) (*types.L
 func GetAppealTeacher(ctx *goon.Ctx, req *types.GetAppealTeacherReq) (*types.GetAppealTeacherRsp, error) {
 	var rsp types.GetAppealTeacherRsp
 
-	list, _, err := appeal.ListAppeal(&types.ListOption{
+	list, _, err := appeal.List(&types.ListOption{
 		Options: []types.Option{
 			{
 				Key: types.ListAppeal_OptionId,
@@ -201,7 +206,7 @@ func GetAppealTeacher(ctx *goon.Ctx, req *types.GetAppealTeacherReq) (*types.Get
 func GetAppealReviewer(ctx *goon.Ctx, req *types.GetAppealReviewerReq) (*types.GetAppealReviewerRsp, error) {
 	var rsp types.GetAppealReviewerRsp
 
-	list, _, err := appeal.ListAppeal(&types.ListOption{
+	list, _, err := appeal.List(&types.ListOption{
 		Options: []types.Option{
 			{
 				Key: types.ListAppeal_OptionId,
@@ -239,7 +244,7 @@ func GetAppealReviewer(ctx *goon.Ctx, req *types.GetAppealReviewerReq) (*types.G
 func GetAppealExaminer(ctx *goon.Ctx, req *types.GetAppealExaminerReq) (*types.GetAppealExaminerRsp, error) {
 	var rsp types.GetAppealExaminerRsp
 
-	list, _, err := appeal.ListAppeal(&types.ListOption{
+	list, _, err := appeal.List(&types.ListOption{
 		Options: []types.Option{
 			{
 				Key: types.ListAppeal_OptionId,
@@ -372,6 +377,15 @@ func SetAppealTeacher(ctx *goon.Ctx, req *types.SetAppealTeacherReq) error {
 		return appeal.ErrAppealAlreadyHanded
 	}
 
+	if req.AppealResult == "" {
+		req.AppealResult = fmt.Sprintf("考试人成绩 %s %d,阅卷人成绩减 %d", func() string {
+			if req.Grade > 0 {
+				return "加"
+			}
+			return "减"
+		}(), int64(math.Abs(float64(req.Grade))), int64(math.Abs(float64(req.Grade))/10))
+	}
+
 	err = db.Transaction(func(tx *gorm.DB) error {
 		res := tx.Model(&types.ModelAppeal{}).
 			Where("id = ?", req.AppealId).
@@ -394,7 +408,17 @@ func SetAppealTeacher(ctx *goon.Ctx, req *types.SetAppealTeacherReq) error {
 
 		err = tx.Model(&types.ModelPaper{}).
 			Where("id = ?", a.PaperId).
-			Update("grade", gorm.Expr("grade += ?", req.Grade)).Error
+			Update("grade", gorm.Expr("grade + ?", req.Grade)).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+
+		err = tx.Model(&types.ModelPaper{}).
+			Where("exam_id = ?", a.ExamId).
+			Where("examiner_id = ?", a.ExaminerId).
+			Update("grade", gorm.Expr("grade - ?", int64(math.Abs(float64(req.Grade))))).
+			Error
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err
