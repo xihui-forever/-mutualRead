@@ -14,7 +14,7 @@ type ModelAdmin struct {
 	DeletedAt soft_delete.DeletedAt `json:"deleted_at,omitempty" gorm:"column:deleted_at;not null;index:idx_admin_username,unique"`
 
 	Username string `json:"username,omitempty" gorm:"column:username;not null;index:idx_admin_username,unique"`
-	Password string `json:"password,omitempty" gorm:"column:password;not null"`
+	Password string `json:"password,omitempty" gorm:"column:password;not null" perm:"read:4"`
 }
 
 /*
@@ -23,6 +23,10 @@ type ModelAdmin struct {
 
 	idx_admin_username: admin-0
 */
+
+func (m *ModelAdmin) GetId() uint64 {
+	return m.Id
+}
 
 func (m *ModelAdmin) Scan(value interface{}) error {
 	return utils.Scan(value, m)

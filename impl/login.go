@@ -7,113 +7,139 @@ import (
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/goon/middleware/session"
 	"github.com/xihui-forever/mutualRead/admin"
-	"github.com/xihui-forever/mutualRead/role"
+	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/student"
 	"github.com/xihui-forever/mutualRead/teacher"
-	"time"
+	"github.com/xihui-forever/mutualRead/types"
+)
+
+type LoginBaseRsp interface {
+	GetId() uint64
+}
+
+var (
+	LoginHandlerMap  = map[int]func(username string, password string) (LoginBaseRsp, error){}
+	ResetPasswordMap = map[int]func(username, password string) error{}
 )
 
 func init() {
-	LoginHandlerMap[LoginTypeTeacher] = func(username string, password string) (uint64, error) {
+	LoginHandlerMap[types.RoleTypeTeacher] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := teacher.GetTeacher(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
 		err = teacher.CheckPassword(password, data.Password)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
-		return data.Id, nil
+		return data, nil
 	}
-	LoginHandlerMap[LoginTypeAdmin] = func(username string, password string) (uint64, error) {
-		data, err := admin.GetAdmin(username)
+	ResetPasswordMap[types.RoleTypeAdmin] = admin.ResetPassword
+
+	LoginHandlerMap[types.RoleTypeAdmin] = func(username string, password string) (LoginBaseRsp, error) {
+		data, err := admin.Get(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
 		err = admin.CheckPassword(password, data.Password)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
-		return data.Id, nil
+		return data, nil
 	}
-	LoginHandlerMap[LoginTypeStudent] = func(username string, password string) (uint64, error) {
+	ResetPasswordMap[types.RoleTypeTeacher] = teacher.ResetPassword
+
+	LoginHandlerMap[types.RoleTypeStudent] = func(username string, password string) (LoginBaseRsp, error) {
 		data, err := student.GetStudent(username)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
 		err = student.CheckPassword(password, data.Password)
 		if err != nil {
 			log.Errorf("err:%v", err)
-			return 0, err
+			return nil, err
 		}
 
-		return data.Id, nil
+		return data, nil
 	}
+	ResetPasswordMap[types.RoleTypeStudent] = student.ResetPassword
 
-	CmdList = append(CmdList, Cmd{
-		Path:  "/login",
-		Role:  role.RoleTypePublic,
-		Logic: LoginHandler,
-	})
+	rpc.Register("/login", LoginHandler, types.RoleTypePublic)
+	rpc.Register("/reset/password", ResetPassword, types.RoleTypeStudent, types.RoleTypeTeacher, types.RoleTypeAdmin)
 }
 
-var LoginHandlerMap = map[int]func(username string, password string) (uint64, error){}
-
-const (
-	LoginTypeAdmin = iota + 1
-	LoginTypeTeacher
-	LoginTypeStudent
-)
-
-type (
-	LoginReq struct {
-		RoleType int    `json:"role_type,omitempty"`
-		Username string `json:"username,omitempty"`
-		Password string `json:"password,omitempty"`
-	}
-	LoginRsp struct {
-		Token  string        `json:"token,omitempty"`
-		Expire time.Duration `json:"expire,omitempty"`
-	}
-	LoginSession struct {
-		RoleType int    `json:"role_type,omitempty"`
-		Id       uint64 `json:"id,omitempty"`
-	}
-)
-
-func LoginHandler(ctx *goon.Ctx, req *LoginReq) (*LoginRsp, error) {
-	var resp LoginRsp
+func LoginHandler(ctx *goon.Ctx, req *types.LoginReq) (*types.LoginRsp, error) {
+	var resp types.LoginRsp
 	logic, ok := LoginHandlerMap[req.RoleType]
 	if !ok {
 		log.Errorf("login type %v not found", req.RoleType)
 		return nil, errors.New("login type not found")
 	}
 
-	id, err := logic(req.Username, req.Password)
+	info, err := logic(req.Username, req.Password)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
 
-	resp.Token, err = session.GenSession(&LoginSession{
+	resp.Token, err = session.GenSession(&types.LoginSession{
 		RoleType: req.RoleType,
-		Id:       id,
+		Id:       info.GetId(),
 	}, xtime.Day)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
 
-	resp.Expire = xtime.Day
+	resp.Expire = uint32(xtime.Day.Seconds())
+	resp.Info = info
 	return &resp, nil
+}
+
+func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
+	switch ctx.GetInt(types.HeaderRoleType) {
+	case types.RoleTypeAdmin:
+		logic, ok := ResetPasswordMap[req.RoleType]
+		if !ok {
+			log.Errorf("login type %v not found", req.RoleType)
+			return errors.New("login type not found")
+		}
+
+		err := logic(req.Username, req.Password)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+	case types.RoleTypeStudent:
+		s, err := student.Get(ctx.GetUint64(types.HeaderUserId))
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+
+		return student.ResetPassword(s.StudentId, req.Password)
+	case types.RoleTypeTeacher:
+		s, err := teacher.Get(ctx.GetUint64(types.HeaderUserId))
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+
+		return teacher.ResetPassword(s.TeacherId, req.Password)
+	default:
+		ctx.SetStatusCode(403)
+		return types.CreateErrorWithMsg(-1, "user not have perm")
+	}
+
+	return nil
 }

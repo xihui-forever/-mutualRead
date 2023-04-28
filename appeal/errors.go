@@ -15,4 +15,6 @@ var (
 	ErrReviewInfoCannotChange   = errors.New("review info cannot be changed")
 	ErResultCannotChange        = errors.New("result cannot be changed")
 	ErrAppealResultChangeFailed = errors.New("appeal result change failed")
+
+	ErrAppealAlreadyHanded = errors.New("申诉已处理")
 )

@@ -8,19 +8,22 @@ import (
 )
 
 func Load() error {
-	_, err := BatchAddRolePerm(RoleTypeAdmin, []string{"/exam_add"})
+	_, err := BatchAddRolePerm(types.RoleTypeAdmin, []string{"/exam_add"})
 	if err != nil {
 		log.Errorf("err:%s", err)
 		return err
 	}
-	_, err = BatchAddRolePerm(RoleTypeTeacher, []string{"/teacher_get", "/email_update", "/password_update",
+	_, err = BatchAddRolePerm(types.RoleTypeTeacher, []string{
+		types.CmdPathGetTeacher,
+		types.CmdPathChangeTeacher,
+		"/email_update", "/password_update",
 		"/exam_add", "/exam_update", "/exam_list", "/exam_delete", "/exam_get",
 		"/paper_add", "/paper_delete", "/paper_list", "/paper_get"})
 	if err != nil {
 		log.Errorf("err:%s", err)
 		return err
 	}
-	_, err = BatchAddRolePerm(RoleTypePublic, []string{"/login"})
+	_, err = BatchAddRolePerm(types.RoleTypePublic, []string{"/login"})
 	if err != nil {
 		log.Errorf("err:%s", err)
 		return err
@@ -28,13 +31,6 @@ func Load() error {
 
 	return nil
 }
-
-const (
-	RoleTypeAdmin = iota + 1
-	RoleTypeTeacher
-	RoleTypeStudent
-	RoleTypePublic
-)
 
 func BatchAddRolePerm(role int, permissions []string) (int64, error) {
 	var count int64 = 0

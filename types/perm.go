@@ -28,3 +28,11 @@ func (m *ModelPerm) Value() (driver.Value, error) {
 func (m *ModelPerm) TableName() string {
 	return "goon_perm"
 }
+
+const (
+	RoleTypeAdmin = iota + 1
+	RoleTypeTeacher
+	RoleTypeStudent
+	RoleTypePublic
+	RoleTypeSys
+)

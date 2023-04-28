@@ -1,76 +1,108 @@
 package impl
 
 import (
-	"github.com/bytedance/sonic"
 	"github.com/darabuchi/log"
 	"github.com/xihui-forever/goon"
-	"github.com/xihui-forever/goon/middleware/session"
+	"github.com/xihui-forever/mutualRead/rpc"
 	"github.com/xihui-forever/mutualRead/teacher"
 	"github.com/xihui-forever/mutualRead/types"
 )
 
 func init() {
-	CmdList = append(CmdList, Cmd{
-		Path:  "/teacher_get",
-		Role:  2,
-		Logic: GetTeacher,
-	}, Cmd{
-		Path:  "/teacher_change",
-		Role:  2,
-		Logic: ChangeTeacher,
-	}, Cmd{
-		Path:  "/teacher_exam_list",
-		Role:  0,
-		Logic: GetExamList,
-	})
+	rpc.Register(types.CmdPathGetTeacher, GetTeacher, types.RoleTypeTeacher)
+	rpc.Register(types.CmdPathChangeTeacher, ChangeTeacher, types.RoleTypeTeacher)
+
+	rpc.Register(types.CmdPathGetTeacherAdmin, GetTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathAddTeacherAdmin, AddTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathSetTeacherAdmin, SetTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathDelTeacherAdmin, DelTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Register(types.CmdPathListTeacherAdmin, ListTeacherAdmin, types.RoleTypeAdmin)
 }
 
-type (
-	GetReq struct {
-		Token string `json:"token"`
-	}
-	ChangeReq struct {
-		TeacherId string `json:"teacher_id"`
-		Email     string `json:"email"`
-	}
-)
+func GetTeacher(ctx *goon.Ctx) (*types.GetTeacherRsp, error) {
+	var rsp types.GetTeacherRsp
 
-func GetTeacher(ctx *goon.Ctx, req *GetReq) (*types.ModelTeacher, error) {
-	var a *types.ModelTeacher
-	s, err := session.GetSession(req.Token)
+	teacher, err := teacher.Get(ctx.GetUint64(types.HeaderUserId))
 	if err != nil {
-		log.Errorf("err:%v", err)
-		return a, err
-	}
-
-	var loginReq LoginSession
-	err = sonic.UnmarshalString(s, &loginReq)
-	if err != nil {
-		log.Errorf("err:%v", err)
-		return a, err
-	}
-
-	a, err = teacher.GetTeacherById(loginReq.Id)
-	if err != nil {
-
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
-	return a, nil
+
+	rsp.Teacher = teacher
+	return &rsp, nil
 }
 
-func ChangeTeacher(ctx *goon.Ctx, req *ChangeReq) (*types.ModelTeacher, error) {
-	var a *types.ModelTeacher
-	err := teacher.ChangeEmail(req.TeacherId, req.Email)
-	if err != nil {
-		log.Errorf("err:%s", err)
-		return nil, err
+func ChangeTeacher(ctx *goon.Ctx, req *types.ChangeTeacherReq) error {
+	switch req.ChangeType {
+	case types.TeacherChangeTypeEmail:
+		err := teacher.ChangeEmail(ctx.GetUint64(types.HeaderUserId), req.Email)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+	default:
+		return types.CreateErrorWithMsg(types.ErrInvalidParam, "invalid change type")
 	}
 
-	a, err = teacher.GetTeacher(req.TeacherId)
+	return nil
+}
+
+func GetTeacherAdmin(ctx *goon.Ctx, req *types.GetTeacherAdminReq) (*types.GetTeacherAdminRsp, error) {
+	var rsp types.GetTeacherAdminRsp
+
+	teacher, err := teacher.Get(req.Id)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
 	}
-	return a, nil
+
+	rsp.Teacher = teacher
+	return &rsp, nil
+}
+
+func AddTeacherAdmin(ctx *goon.Ctx, req *types.AddTeacherAdminReq) (*types.AddTeacherAdminRsp, error) {
+	var rsp types.AddTeacherAdminRsp
+	teacher, err := teacher.Add(req.Teacher)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	rsp.Teacher = teacher
+	return &rsp, nil
+}
+
+func SetTeacherAdmin(ctx *goon.Ctx, req *types.AddTeacherAdminReq) (*types.AddTeacherAdminRsp, error) {
+	var rsp types.AddTeacherAdminRsp
+	teacher, err := teacher.Set(req.Teacher)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	rsp.Teacher = teacher
+	return &rsp, nil
+}
+
+func DelTeacherAdmin(ctx *goon.Ctx, req *types.DelTeacherAdminReq) error {
+	err := teacher.DelTeacher(req.Id)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	return nil
+}
+
+func ListTeacherAdmin(ctx *goon.Ctx, req *types.ListTeacherAdminReq) (*types.ListTeacherAdminRsp, error) {
+	var rsp types.ListTeacherAdminRsp
+
+	var err error
+	rsp.Teachers, rsp.Page, err = teacher.ListTeacher(req.Options)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	return &rsp, nil
 }

@@ -23,7 +23,7 @@ func TestAddExam(t *testing.T) {
 	}
 
 	var a *types.ModelExam
-	a, err = AddExam("数据结构第一次测试", "90120001")
+	a, err = Add("数据结构第一次测试", "90120001")
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return

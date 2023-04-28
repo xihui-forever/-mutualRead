@@ -30,7 +30,7 @@ func TestAddPaper(t *testing.T) {
 	}
 
 	var paper *types.ModelPaper
-	paper, err = AddPaper(a)
+	paper, err = Add(a)
 	if err != nil {
 		t.Errorf("err:%v", err)
 		return
