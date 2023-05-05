@@ -9,14 +9,14 @@ import (
 )
 
 func init() {
-	rpc.Register(types.CmdPathGetTeacher, GetTeacher, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathChangeTeacher, ChangeTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathGetTeacher, GetTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathChangeTeacher, ChangeTeacher, types.RoleTypeTeacher)
 
-	rpc.Register(types.CmdPathGetTeacherAdmin, GetTeacherAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathAddTeacherAdmin, AddTeacherAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathSetTeacherAdmin, SetTeacherAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathDelTeacherAdmin, DelTeacherAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathListTeacherAdmin, ListTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathGetTeacherAdmin, GetTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathAddTeacherAdmin, AddTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathSetTeacherAdmin, SetTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathDelTeacherAdmin, DelTeacherAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathListTeacherAdmin, ListTeacherAdmin, types.RoleTypeAdmin)
 }
 
 func GetTeacher(ctx *goon.Ctx) (*types.GetTeacherRsp, error) {

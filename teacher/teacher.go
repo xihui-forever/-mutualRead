@@ -29,7 +29,10 @@ func Add(teacher *types.ModelTeacher) (*types.ModelTeacher, error) {
 }
 
 func Set(t *types.ModelTeacher) (*types.ModelTeacher, error) {
-	err := db.Model(&types.ModelTeacher{}).Omit("password").Save(&t).Error
+	err := db.Model(&types.ModelTeacher{}).
+		Where("id = ?", t.Id).
+		Omit("password").
+		Save(&t).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -136,12 +139,8 @@ func CheckPassword(input string, password string) error {
 	return nil
 }
 
-func ChangePassword(teacherId string, oldPwd, newPwd string) error {
-	if newPwd == "" {
-		return ErrorNewPwdEmpty
-	}
-
-	a, err := GetTeacher(teacherId)
+func ChangePassword(id uint64, oldPwd, newPwd string) error {
+	a, err := Get(id)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
@@ -191,9 +190,9 @@ func ListTeacher(opt *types.ListOption) ([]*types.ModelTeacher, *types.Page, err
 		case types.ListTeacher_OptionTeacherId:
 			db = db.Where("teacher_id = ?", option.Val)
 		case types.ListTeacher_OptionNameLike:
-			db = db.Where("name like %?%", option.Val)
+			db = db.Where("name like ?", "%"+utils.ToString(option.Val)+"%")
 		case types.ListTeacher_OptionEmailLike:
-			db = db.Where("email like %?%", option.Val)
+			db = db.Where("email like ?", "%"+utils.ToString(option.Val)+"%")
 		default:
 			log.Errorf("unknown option key:%v", option.Key)
 		}

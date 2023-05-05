@@ -15,13 +15,13 @@ import (
 )
 
 func init() {
-	rpc.Register(types.CmdPathAddPaper, AddPaper, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathListPaperTeacher, ListPaperTeacher, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathListPaperExaminer, ListPaperExaminer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathGetPaperTeacher, GetPaperTeacher, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathGetPaperExaminer, GetPaperExaminer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathGetPaperReviewer, GetPaperReviewer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathDelPaperTeacher, DelPaperTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathAddPaper, AddPaper, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathListPaperTeacher, ListPaperTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathListPaperExaminer, ListPaperExaminer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathGetPaperTeacher, GetPaperTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathGetPaperExaminer, GetPaperExaminer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathGetPaperReviewer, GetPaperReviewer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathDelPaperTeacher, DelPaperTeacher, types.RoleTypeTeacher)
 }
 
 func AddPaper(ctx *goon.Ctx, req *types.AddPaperReq) (*types.AddPaperRsp, error) {

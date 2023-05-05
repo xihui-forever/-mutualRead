@@ -109,8 +109,8 @@ func CheckPassword(input string, password string) error {
 	return nil
 }
 
-func ChangePassword(studentId string, oldPwd, newPwd string) error {
-	a, err := GetStudent(studentId)
+func ChangePassword(id uint64, oldPwd, newPwd string) error {
+	a, err := Get(id)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
@@ -180,7 +180,12 @@ func GetByStrId(id string) (*types.ModelStudent, error) {
 }
 
 func Set(s *types.ModelStudent) (*types.ModelStudent, error) {
-	err := db.Model(&types.ModelStudent{}).Omit("password").Save(s).Error
+	err := db.
+		Model(&types.ModelStudent{}).
+		Where("id = ?", s.Id).
+		Omit("password").
+		Save(s).
+		Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return nil, err
@@ -205,9 +210,9 @@ func List(opt *types.ListOption) ([]*types.ModelStudent, *types.Page, error) {
 		case types.ListStudent_OptionStudentId:
 			db = db.Where("student_id = ?", option.Val)
 		case types.ListStudent_OptionNameLike:
-			db = db.Where("name like %?%", option.Val)
+			db = db.Where("name like ?", "%"+utils.ToString(option.Val)+"%")
 		case types.ListStudent_OptionEmailLike:
-			db = db.Where("email like %?%", option.Val)
+			db = db.Where("email like ?", "%"+utils.ToString(option.Val)+"%")
 		default:
 			log.Errorf("unknown option:%v", option)
 		}

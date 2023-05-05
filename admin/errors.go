@@ -1,11 +1,13 @@
 package admin
 
-import "errors"
+import (
+	"github.com/xihui-forever/mutualRead/types"
+)
 
 var (
-	ErrAdminExist           = errors.New("admin exist")
-	ErrAdminNotExist        = errors.New("admin not exist")
-	ErrAdminRemoveFailed    = errors.New("admin remove failed")
-	ErrPasswordWrong        = errors.New("password wrong")
-	ErrPasswordChangeFailed = errors.New("password change failed")
+	ErrAdminExist           = types.CreateError(types.ErrAdminExist)
+	ErrAdminNotExist        = types.CreateError(types.ErrAdminNotExist)
+	ErrAdminRemoveFailed    = types.CreateError(types.ErrAdminRemoveFailed)
+	ErrPasswordWrong        = types.CreateError(types.ErrPasswordWrong)
+	ErrPasswordChangeFailed = types.CreateError(types.ErrPasswordChangeFailed)
 )

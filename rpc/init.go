@@ -10,6 +10,7 @@ import (
 	"github.com/xihui-forever/mutualRead/types"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func Load() {
@@ -29,6 +30,11 @@ func Load() {
 
 	goon.PreUse("/", func(ctx *goon.Ctx) error {
 		path := ctx.Path()
+
+		if strings.HasPrefix(path, types.CmdPathResourceGet) {
+			return ctx.Next()
+		}
+
 		flag, err := role.CheckPermission(types.RoleTypePublic, path)
 		if flag {
 			return ctx.Next()
@@ -64,16 +70,12 @@ func Load() {
 	})
 
 	for _, cmd := range CmdList {
-		Post(cmd.Path, cmd.Logic)
+		goon.Register(cmd.Method, cmd.Path, GenHandler(cmd.Logic))
 
 		for _, r := range cmd.Roles {
 			_, _ = role.BatchAddRolePerm(r, []string{cmd.Path})
 		}
 	}
-}
-
-func Post(path string, logic interface{}) {
-	goon.Post(path, GenHandler(logic))
 }
 
 func HandleError(ctx *goon.Ctx, err error) error {
@@ -138,7 +140,18 @@ func GenHandler(logic any) goon.Handler {
 			}
 
 			return func(ctx *goon.Ctx) error {
-				return HandleError(ctx, logic.(goon.Handler)(ctx))
+				out := lv.Call([]reflect.Value{reflect.ValueOf(ctx)})
+				if out[0].IsNil() {
+					if ctx.ContentLen() > 0 {
+						return nil
+					}
+
+					return ctx.Json(&types.Error{
+						TranceId: log.GetTrace(),
+					})
+				}
+
+				return HandleError(ctx, out[0].Interface().(error))
 			}
 		} else if lt.NumIn() == 2 && lt.NumOut() == 1 {
 			// 两个入参，一个出参，那就是需要解析请求参数的
@@ -284,17 +297,46 @@ func GenHandler(logic any) goon.Handler {
 }
 
 type Cmd struct {
-	Path  string
-	Roles []int
-	Logic interface{} // func(ctx, req) (resp, err)
+	Path   string
+	Roles  []int
+	Logic  interface{} // func(ctx, req) (resp, err)
+	Method goon.Method
 }
 
 var CmdList = []Cmd{}
 
-func Register(path string, logic any, roles ...int) {
+func Post(path string, logic any, roles ...int) {
 	CmdList = append(CmdList, Cmd{
-		Path:  path,
-		Roles: roles,
-		Logic: logic,
+		Method: goon.MethodPost,
+		Path:   path,
+		Roles:  roles,
+		Logic:  logic,
+	})
+}
+
+func Put(path string, logic any, roles ...int) {
+	CmdList = append(CmdList, Cmd{
+		Method: goon.MethodPut,
+		Path:   path,
+		Roles:  roles,
+		Logic:  logic,
+	})
+}
+
+func Get(path string, logic any, roles ...int) {
+	CmdList = append(CmdList, Cmd{
+		Method: goon.MethodGet,
+		Path:   path,
+		Roles:  roles,
+		Logic:  logic,
+	})
+}
+
+func Use(path string, logic any, roles ...int) {
+	CmdList = append(CmdList, Cmd{
+		Method: goon.MethodUse,
+		Path:   path,
+		Roles:  roles,
+		Logic:  logic,
 	})
 }

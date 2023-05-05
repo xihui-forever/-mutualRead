@@ -10,7 +10,6 @@ import (
 	"github.com/elliotchance/pie/v2"
 	"github.com/xihui-forever/mutualRead/mail"
 	"github.com/xihui-forever/mutualRead/types"
-	"strconv"
 	"time"
 )
 
@@ -35,7 +34,7 @@ func Load() error {
 
 				err = mail.Send([]string{
 					fmt.Sprintf("%s <%s>", reviever.Name, reviever.Email),
-				}, "新申诉待处理通知", fmt.Sprintf("亲爱的 %s 同学，您好\n您有一条针对所阅试卷的申诉信息待处理，申诉编号为 %s ,请于24小时之内处理完毕！\n后续系统会及时发送最终处理结果的邮件提醒，敬请关注！", reviever.Name, utils.Md5(strconv.FormatUint(a.Id, 10))))
+				}, "新申诉待处理通知", fmt.Sprintf("亲爱的 %s 同学，您好\n您有一条针对所阅试卷的申诉信息待处理 ,请于24小时之内处理完毕！\n后续系统会及时发送最终处理结果的邮件提醒，敬请关注！", reviever.Name))
 				if err != nil {
 					log.Errorf("err:%v", err)
 					return nil, err
@@ -51,7 +50,7 @@ func Load() error {
 
 				err = mail.Send([]string{
 					fmt.Sprintf("%s <%s>", teacher.Name, teacher.Email),
-				}, "新申诉待处理通知", fmt.Sprintf("尊敬的 %s 老师，您好！\n您录入的编号为 %s 的试卷有一条相关申诉待处理，申诉编号为 %s，请登录系统查阅申诉的详细信息，并于一周内处理完毕，否则逾期申诉作废！\nITest团队", teacher.Name, utils.Md5(strconv.FormatUint(a.PaperId, 10)), utils.Md5(strconv.FormatUint(a.Id, 10))))
+				}, "新申诉待处理通知", fmt.Sprintf("尊敬的 %s 老师，您好！\n您录入的的试卷有一条相关申诉待处理，请登录系统查阅申诉的详细信息，并于一周内处理完毕，否则逾期申诉作废！\nITest团队", teacher.Name))
 				if err != nil {
 					log.Errorf("err:%v", err)
 					return nil, err
@@ -67,7 +66,7 @@ func Load() error {
 
 				err = mail.Send([]string{
 					fmt.Sprintf("%s <%s>", examiner.Name, examiner.Email),
-				}, "申诉处理结果通知", fmt.Sprintf("亲爱的 %s 同学，您好！\n您针对试卷 %s 提出的申诉XXX最终处理结果已出，申诉结果为 %s，详细信息请登录系统进行查看！\nITest团队", examiner.Name, utils.Md5(strconv.FormatUint(a.Id, 10)), a.AppealResult))
+				}, "申诉处理结果通知", fmt.Sprintf("亲爱的 %s 同学，您好！\n您针对试卷提出的申诉最终处理结果已出，申诉结果为 %s，详细信息请登录系统进行查看！\nITest团队", examiner.Name, a.AppealResult))
 				if err != nil {
 					log.Errorf("err:%v", err)
 					return nil, err

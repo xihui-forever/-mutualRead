@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"errors"
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils/xtime"
 	"github.com/xihui-forever/goon"
@@ -74,8 +73,9 @@ func init() {
 	}
 	ResetPasswordMap[types.RoleTypeStudent] = student.ResetPassword
 
-	rpc.Register("/login", LoginHandler, types.RoleTypePublic)
-	rpc.Register("/reset/password", ResetPassword, types.RoleTypeStudent, types.RoleTypeTeacher, types.RoleTypeAdmin)
+	rpc.Post("/login", LoginHandler, types.RoleTypePublic)
+	rpc.Post("/reset/password", ResetPassword, types.RoleTypeStudent, types.RoleTypeTeacher, types.RoleTypeAdmin)
+	rpc.Post("/change-password", ChangePassword, types.RoleTypeStudent, types.RoleTypeTeacher, types.RoleTypeAdmin)
 }
 
 func LoginHandler(ctx *goon.Ctx, req *types.LoginReq) (*types.LoginRsp, error) {
@@ -83,7 +83,7 @@ func LoginHandler(ctx *goon.Ctx, req *types.LoginReq) (*types.LoginRsp, error) {
 	logic, ok := LoginHandlerMap[req.RoleType]
 	if !ok {
 		log.Errorf("login type %v not found", req.RoleType)
-		return nil, errors.New("login type not found")
+		return nil, types.CreateError(types.ErrLoginTypeNotFound)
 	}
 
 	info, err := logic(req.Username, req.Password)
@@ -112,7 +112,7 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 		logic, ok := ResetPasswordMap[req.RoleType]
 		if !ok {
 			log.Errorf("login type %v not found", req.RoleType)
-			return errors.New("login type not found")
+			return types.CreateError(types.ErrLoginTypeNotFound)
 		}
 
 		err := logic(req.Username, req.Password)
@@ -142,4 +142,18 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 	}
 
 	return nil
+}
+
+func ChangePassword(ctx *goon.Ctx, req *types.ChangePasswordReq) error {
+	switch ctx.GetInt(types.HeaderRoleType) {
+	case types.RoleTypeAdmin:
+		return admin.ChangePassword(ctx.GetUint64(types.HeaderUserId), req.OldPassword, req.NewPassword)
+	case types.RoleTypeStudent:
+		return student.ChangePassword(ctx.GetUint64(types.HeaderUserId), req.OldPassword, req.NewPassword)
+	case types.RoleTypeTeacher:
+		return teacher.ChangePassword(ctx.GetUint64(types.HeaderUserId), req.OldPassword, req.NewPassword)
+	default:
+		ctx.SetStatusCode(403)
+		return types.CreateErrorWithMsg(-1, "user not have perm")
+	}
 }

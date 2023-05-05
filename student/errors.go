@@ -1,13 +1,15 @@
 package student
 
-import "errors"
+import (
+	"github.com/xihui-forever/mutualRead/types"
+)
 
 var (
-	ErrStudentExist         = errors.New("student already exists")
-	ErrStudentNotExist      = errors.New("student not exists")
-	ErrStudentRemoveFailed  = errors.New("student remove failed")
-	ErrPasswordWrong        = errors.New("password is wrong")
-	ErrPasswordChangeFailed = errors.New("password change failed")
-	ErrorEmailNoChange      = errors.New("email no change")
-	ErrEmailChangeFailed    = errors.New("email change failed")
+	ErrStudentExist         = types.CreateError(types.ErrStudentExist)
+	ErrStudentNotExist      = types.CreateError(types.ErrStudentNotExist)
+	ErrStudentRemoveFailed  = types.CreateError(types.ErrStudentRemoveFailed)
+	ErrPasswordWrong        = types.CreateError(types.ErrPasswordWrong)
+	ErrPasswordChangeFailed = types.CreateError(types.ErrPasswordChangeFailed)
+	ErrorEmailNoChange      = types.CreateError(types.ErrorEmailNoChange)
+	ErrEmailChangeFailed    = types.CreateError(types.ErrEmailChangeFailed)
 )
