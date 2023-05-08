@@ -61,9 +61,13 @@ func CheckPassword(input string, password string) error {
 	return nil
 }
 
-func ChangePassword(username string, oldPwd, newPwd string) error {
-	a, err := Get(username)
+func ChangePassword(id uint64, oldPwd, newPwd string) error {
+	var a types.ModelAdmin
+	err := db.Where("id = ?", id).First(&a).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return ErrAdminExist
+		}
 		log.Errorf("err:%v", err)
 		return err
 	}

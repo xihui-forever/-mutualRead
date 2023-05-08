@@ -1,8 +1,10 @@
 package exam
 
-import "errors"
+import (
+	"github.com/xihui-forever/mutualRead/types"
+)
 
 var (
-	ErrExamNotExist     = errors.New("exam not found")
-	ErrExamChangeFailed = errors.New("exam name change failed")
+	ErrExamNotExist     = types.CreateError(types.ErrExamNotExist)
+	ErrExamChangeFailed = types.CreateError(types.ErrExamChangeFailed)
 )

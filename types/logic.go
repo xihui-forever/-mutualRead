@@ -19,4 +19,9 @@ type (
 		Username string `json:"username,omitempty"`
 		Password string `json:"password,omitempty"`
 	}
+
+	ChangePasswordReq struct {
+		OldPassword string `json:"old_password,omitempty" validate:"required"`
+		NewPassword string `json:"new_password,omitempty" validate:"required"`
+	}
 )

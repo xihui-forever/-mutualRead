@@ -9,14 +9,14 @@ import (
 )
 
 func init() {
-	rpc.Register(types.CmdPathGetStudent, GetStudent, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathChangeStudent, ChangeStudent, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathGetStudent, GetStudent, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathChangeStudent, ChangeStudent, types.RoleTypeStudent)
 
-	rpc.Register(types.CmdPathAddStudentAdmin, AddStudentAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathGetStudentAdmin, GetStudentAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathSetStudentAdmin, SetStudentAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathDelStudentAdmin, DeleteStudentAdmin, types.RoleTypeAdmin)
-	rpc.Register(types.CmdPathListStudentAdmin, ListStudentAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathAddStudentAdmin, AddStudentAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathGetStudentAdmin, GetStudentAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathSetStudentAdmin, SetStudentAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathDelStudentAdmin, DeleteStudentAdmin, types.RoleTypeAdmin)
+	rpc.Post(types.CmdPathListStudentAdmin, ListStudentAdmin, types.RoleTypeAdmin)
 }
 
 func GetStudent(ctx *goon.Ctx) (*types.GetStudentRsp, error) {

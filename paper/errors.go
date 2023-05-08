@@ -1,10 +1,12 @@
 package paper
 
-import "errors"
+import (
+	"github.com/xihui-forever/mutualRead/types"
+)
 
 var (
-	ErrPaperExist        = errors.New("paper already exists")
-	ErrPaperChangeFailed = errors.New("paper change failed")
-	ErrPaperNotExist     = errors.New("paper does not exist")
-	ErrGradeChangeFailed = errors.New("grade change failed")
+	ErrPaperExist        = types.CreateError(types.ErrPaperExist)
+	ErrPaperChangeFailed = types.CreateError(types.ErrPaperChangeFailed)
+	ErrPaperNotExist     = types.CreateError(types.ErrPaperNotExist)
+	ErrGradeChangeFailed = types.CreateError(types.ErrGradeChangeFailed)
 )

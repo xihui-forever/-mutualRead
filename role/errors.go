@@ -1,7 +1,9 @@
 package role
 
-import "errors"
+import (
+	"github.com/xihui-forever/mutualRead/types"
+)
 
 var (
-	ErrRolePermExists = errors.New("rolePerm already exists")
+	ErrRolePermExists = types.CreateError(types.ErrRolePermAlreadyExists)
 )

@@ -109,6 +109,8 @@ func ListPaper(opts *types.ListOption) ([]*types.ModelPaper, *types.Page, error)
 			db = db.Where("reviewer_id = ?", option.Val)
 		case types.ListPaper_OptionTeacherId:
 			db = db.Where("teacher_id = ?", option.Val)
+		case types.ListPaper_OptionId:
+			db = db.Where("id = ?", option.Val)
 		}
 	}
 

@@ -18,20 +18,20 @@ import (
 )
 
 func init() {
-	rpc.Register(types.CmdPathAddAppeal, AddAppeal, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathListAppealExaminer, ListAppealExaminer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathListAppealReviewer, ListAppealReviewer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathListAppealTeacher, ListAppealTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathAddAppeal, AddAppeal, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathListAppealExaminer, ListAppealExaminer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathListAppealReviewer, ListAppealReviewer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathListAppealTeacher, ListAppealTeacher, types.RoleTypeTeacher)
 
-	rpc.Register(types.CmdPathGetAppealExaminer, GetAppealExaminer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathGetAppealReviewer, GetAppealReviewer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathGetAppealTeacher, GetAppealTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathGetAppealExaminer, GetAppealExaminer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathGetAppealReviewer, GetAppealReviewer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathGetAppealTeacher, GetAppealTeacher, types.RoleTypeTeacher)
 
-	rpc.Register(types.CmdPathSetAppealExaminer, SetAppealExaminer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathSetAppealReviewer, SetAppealReviewer, types.RoleTypeStudent)
-	rpc.Register(types.CmdPathSetAppealTeacher, SetAppealTeacher, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathSetAppealExaminer, SetAppealExaminer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathSetAppealReviewer, SetAppealReviewer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathSetAppealTeacher, SetAppealTeacher, types.RoleTypeTeacher)
 
-	rpc.Register(types.CmdPathRecallAppeal, RecallAppeal, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathRecallAppeal, RecallAppeal, types.RoleTypeStudent)
 }
 
 func AddAppeal(ctx *goon.Ctx, req *types.AddAppealReq) (*types.AddAppealRsp, error) {
@@ -378,12 +378,12 @@ func SetAppealTeacher(ctx *goon.Ctx, req *types.SetAppealTeacherReq) error {
 	}
 
 	if req.AppealResult == "" {
-		req.AppealResult = fmt.Sprintf("考试人成绩 %s %d,阅卷人成绩减 %d", func() string {
+		req.AppealResult = fmt.Sprintf("考试人成绩%s %.2f，阅卷人成绩减 %.2f", func() string {
 			if req.Grade > 0 {
 				return "加"
 			}
 			return "减"
-		}(), int64(math.Abs(float64(req.Grade))), int64(math.Abs(float64(req.Grade))/10))
+		}(), math.Abs(float64(req.Grade))/100, math.Abs(float64(req.Grade))/1000)
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
@@ -416,8 +416,8 @@ func SetAppealTeacher(ctx *goon.Ctx, req *types.SetAppealTeacherReq) error {
 
 		err = tx.Model(&types.ModelPaper{}).
 			Where("exam_id = ?", a.ExamId).
-			Where("examiner_id = ?", a.ExaminerId).
-			Update("grade", gorm.Expr("grade - ?", int64(math.Abs(float64(req.Grade))))).
+			Where("examiner_id = ?", a.ReviewerId).
+			Update("grade", gorm.Expr("grade - ?", int64(math.Abs(float64(req.Grade)/10)))).
 			Error
 		if err != nil {
 			log.Errorf("err:%v", err)

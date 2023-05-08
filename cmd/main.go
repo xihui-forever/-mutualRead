@@ -46,6 +46,7 @@ func main() {
 		types.ModelStudent{},
 		types.ModelTeacher{},
 		types.ModelAdmin{},
+		types.ModelResource{},
 	)
 	if err != nil {
 		log.Errorf("err:%v", err)

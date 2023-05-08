@@ -2,6 +2,7 @@ package exam
 
 import (
 	"github.com/darabuchi/log"
+	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
@@ -73,7 +74,7 @@ func List(opt *types.ListOption) ([]*types.ModelExam, *types.Page, error) {
 		case types.ListExam_OptionTeacherId:
 			db = db.Where("teacher_id = ?", option.Val)
 		case types.ListExam_OptionNameLike:
-			db = db.Where("name like %?%", option.Val)
+			db = db.Where("name like ?", "%"+utils.ToString(option.Val)+"%")
 		}
 	}
 

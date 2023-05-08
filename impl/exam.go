@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	rpc.Register(types.CmdPathAddExam, AddExam, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathSetExam, SetExam, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathDelExam, DelExam, types.RoleTypeTeacher)
-	rpc.Register(types.CmdPathListExam, ListExam, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathAddExam, AddExam, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathSetExam, SetExam, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathDelExam, DelExam, types.RoleTypeTeacher)
+	rpc.Post(types.CmdPathListExam, ListExam, types.RoleTypeTeacher)
 }
 
 func AddExam(ctx *goon.Ctx, req *types.AddExamReq) (*types.ModelExam, error) {

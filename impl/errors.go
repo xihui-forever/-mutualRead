@@ -1,8 +1,10 @@
 package impl
 
-import "errors"
+import (
+	"github.com/xihui-forever/mutualRead/types"
+)
 
 var (
-	ErrPasswordIncorrect = errors.New("password is incorrect")
-	ErrTeacherNotExist   = errors.New("teacher not exist")
+	ErrPasswordIncorrect = types.CreateError(types.ErrPasswordIncorrect)
+	ErrTeacherNotExist   = types.CreateError(types.ErrTeacherNotExist)
 )
