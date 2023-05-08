@@ -416,7 +416,7 @@ func SetAppealTeacher(ctx *goon.Ctx, req *types.SetAppealTeacherReq) error {
 
 		err = tx.Model(&types.ModelPaper{}).
 			Where("exam_id = ?", a.ExamId).
-			Where("reviewer_id = ?", a.ReviewerId).
+			Where("examiner_id = ?", a.ReviewerId).
 			Update("grade", gorm.Expr("grade - ?", int64(math.Abs(float64(req.Grade)/10)))).
 			Error
 		if err != nil {
