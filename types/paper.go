@@ -36,13 +36,16 @@ func (m *ModelPaper) TableName() string {
 }
 
 const (
-	CmdPathAddPaper          = "/paper/add"
+	CmdPathAddPaper = "/paper/add"
+
 	CmdPathListPaperTeacher  = "/teacher/paper/list"
 	CmdPathListPaperExaminer = "/examiner/paper/list"
-	CmdPathGetPaperTeacher   = "/teacher/paper/get"
-	CmdPathGetPaperExaminer  = "/examiner/paper/get"
-	CmdPathGetPaperReviewer  = "/reviewer/paper/get"
-	CmdPathDelPaperTeacher   = "/paper/del"
+	CmdPathListPaperReviewer = "/reviewer/paper/list"
+
+	CmdPathGetPaperTeacher  = "/teacher/paper/get"
+	CmdPathGetPaperExaminer = "/examiner/paper/get"
+	CmdPathGetPaperReviewer = "/reviewer/paper/get"
+	CmdPathDelPaperTeacher  = "/paper/del"
 )
 
 type (

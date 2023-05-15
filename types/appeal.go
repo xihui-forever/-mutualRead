@@ -11,6 +11,7 @@ const (
 	AppealStateWaitTeacher             // 等待老师审核
 	AppealStateFinish                  // 申诉结束
 	AppealStateRecall                  // 申诉撤回
+	AppealStateTimeout                 // 申诉超时
 )
 
 type ModelAppeal struct {
@@ -52,13 +53,15 @@ func (m *ModelAppeal) TableName() string {
 }
 
 const (
-	CmdPathAddAppeal          = "/appeal/add"
+	CmdPathAddAppeal = "/appeal/add"
+
 	CmdPathListAppealTeacher  = "/teacher/appeal/list"
 	CmdPathListAppealExaminer = "/examiner/appeal/list"
 	CmdPathListAppealReviewer = "/reviewer/appeal/list"
-	CmdPathGetAppealTeacher   = "/teacher/appeal/get"
-	CmdPathGetAppealExaminer  = "/examiner/appeal/get"
-	CmdPathGetAppealReviewer  = "/reviewer/appeal/get"
+
+	CmdPathGetAppealTeacher  = "/teacher/appeal/get"
+	CmdPathGetAppealExaminer = "/examiner/appeal/get"
+	CmdPathGetAppealReviewer = "/reviewer/appeal/get"
 
 	CmdPathSetAppealExaminer = "/examiner/appeal/set"
 	CmdPathSetAppealReviewer = "/reviewer/appeal/set"

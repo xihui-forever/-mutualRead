@@ -55,6 +55,7 @@ func AddAppeal(ctx *goon.Ctx, req *types.AddAppealReq) (*types.AddAppealRsp, err
 		ReviewerId: p.ReviewerId,
 		TeacherId:  p.TeacherId,
 		AppealInfo: req.AppealInfo,
+		ChangeAt:   uint32(time.Now().Unix()),
 	})
 	if err != nil {
 		log.Errorf("err:%v", err)
@@ -297,8 +298,9 @@ func SetAppealExaminer(ctx *goon.Ctx, req *types.SetAppealExaminerReq) error {
 	res := db.Model(&types.ModelAppeal{}).
 		Where("id = ?", req.AppealId).
 		Where("state = ?", types.AppealStateWaitReviewer).
+		Where("created_at > ?", time.Now().Add(-time.Hour*2).Unix()).
 		Updates(map[string]any{
-			"change_at":   time.Now().Unix(),
+			"created_at":  time.Now().Unix(),
 			"appeal_info": req.AppealInfo,
 		})
 	if res.Error != nil {
@@ -465,6 +467,7 @@ func RecallAppeal(ctx *goon.Ctx, req *types.RecallAppealReq) error {
 	res := db.Model(&types.ModelAppeal{}).
 		Where("id = ?", req.AppealId).
 		Where("state = ?", types.AppealStateWaitReviewer).
+		Where("created_at > ?", time.Now().Add(-time.Hour*2).Unix()).
 		Updates(map[string]any{
 			"state": types.AppealStateRecall,
 		})

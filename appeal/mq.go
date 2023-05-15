@@ -99,12 +99,11 @@ func Load() error {
 
 func Timeout() (err error) {
 	// 24小时超时
-
 	for {
 		var appeals []*types.ModelAppeal
 		err = db.Model(&types.ModelAppeal{}).
 			Where("state = ?", types.AppealStateWaitReviewer).
-			Where("created_at < ?", time.Now().Add(-time.Hour*24)).
+			Where("created_at < ?", time.Now().Add(-time.Hour*24).Unix()).
 			Limit(100).Find(&appeals).Error
 		if err != nil {
 			log.Errorf("err:%v", err)
@@ -119,7 +118,7 @@ func Timeout() (err error) {
 			Where("state = ?", types.AppealStateWaitReviewer).
 			Where("id in (?)", utils.PluckUint64(appeals, "Id")).
 			Updates(map[string]interface{}{
-				"state":       types.AppealStateWaitTeacher,
+				"state":       types.AppealStateTimeout,
 				"reviewer_at": time.Now().Unix(),
 			}).Error
 		if err != nil {
@@ -142,7 +141,7 @@ func Timeout() (err error) {
 		var appeals []*types.ModelAppeal
 		err = db.Model(&types.ModelAppeal{}).
 			Where("state = ?", types.AppealStateWaitTeacher).
-			Where("reviewer_at < ?", time.Now().Add(-xtime.Week)).
+			Where("reviewer_at < ?", time.Now().Add(-xtime.Week).Unix()).
 			Limit(100).Find(&appeals).Error
 		if err != nil {
 			log.Errorf("err:%v", err)

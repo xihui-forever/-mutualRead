@@ -1,6 +1,7 @@
 
 run:
-	go run -v ./cmd/
+	go build -v -o mutualRead.exe ./cmd/
+	./mutualRead.exe
 
 store:
 	go build -v --tags release -o ./mutualRead ./cmd/

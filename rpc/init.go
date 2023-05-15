@@ -6,8 +6,12 @@ import (
 	"github.com/darabuchi/utils"
 	"github.com/xihui-forever/goon"
 	"github.com/xihui-forever/goon/middleware/session"
+	"github.com/xihui-forever/mutualRead/public"
 	"github.com/xihui-forever/mutualRead/role"
 	"github.com/xihui-forever/mutualRead/types"
+	"mime"
+	"net/http"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -28,6 +32,43 @@ func Load() {
 		return ctx.Next()
 	})
 
+	// 前端的静态文件
+	goon.Use("/", func(ctx *goon.Ctx) error {
+		path := ctx.Path()
+		if path == "/" {
+			path = "/index.html"
+		}
+
+		if strings.HasPrefix(path, "/api/") {
+			return ctx.Next()
+		}
+
+		// 判断一下静态文件是否存在
+		buf, err := public.Public.ReadFile(filepath.ToSlash(filepath.Join("build", path)))
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return ctx.Next()
+		}
+
+		ctx.SetResHeader("Cache-Control", "public, max-age=86400")
+
+		contentType := mime.TypeByExtension(filepath.Ext(path))
+		if contentType == "" {
+			var buffer []byte
+			if len(buffer) < 512 {
+				buffer = buf
+			} else {
+				buffer = buf[:512]
+			}
+			contentType = http.DetectContentType(buffer)
+		}
+
+		ctx.SetResHeader("Content-Type", contentType)
+
+		return ctx.Write(buf)
+	})
+
+	// 后端的校验逻辑
 	goon.PreUse("/", func(ctx *goon.Ctx) error {
 		path := ctx.Path()
 
@@ -306,6 +347,7 @@ type Cmd struct {
 var CmdList = []Cmd{}
 
 func Post(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodPost,
 		Path:   path,
@@ -315,6 +357,7 @@ func Post(path string, logic any, roles ...int) {
 }
 
 func Put(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodPut,
 		Path:   path,
@@ -324,6 +367,7 @@ func Put(path string, logic any, roles ...int) {
 }
 
 func Get(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodGet,
 		Path:   path,
@@ -333,6 +377,7 @@ func Get(path string, logic any, roles ...int) {
 }
 
 func Use(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodUse,
 		Path:   path,

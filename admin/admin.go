@@ -94,7 +94,7 @@ func Encrypt(pwd string) string {
 	return base64.StdEncoding.EncodeToString([]byte(utils.HmacSha384("620dd0f8d3e5424f99548ed8b9a6a59f", pwd)))
 }
 
-func ResetPassword(username string, password string) error {
+func ResetPassword(username string, password string, sendMail bool) error {
 	var a types.ModelAdmin
 	err := db.Where("username = ?", username).First(&a).Error
 	if err != nil {
@@ -105,7 +105,7 @@ func ResetPassword(username string, password string) error {
 		return err
 	}
 
-	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(password)).Error
+	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(utils.Md5(password))).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
