@@ -39,6 +39,10 @@ func Load() {
 			path = "/index.html"
 		}
 
+		if strings.HasPrefix(path, "/api/") {
+			return ctx.Next()
+		}
+
 		// 判断一下静态文件是否存在
 		buf, err := public.Public.ReadFile(filepath.ToSlash(filepath.Join("build", path)))
 		if err != nil {
