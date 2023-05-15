@@ -65,7 +65,7 @@ var errMap = map[ErrCode]string{
 	ErrOneAppealAlreadyProgress: "已有一个申诉正在进行中",
 	ErrAppealAlreadyExists:      "申诉已存在",
 	ErrAppealNotExists:          "申诉不存在",
-	ErrAppealAlreadyHanded:      "申诉已处理",
+	ErrAppealAlreadyHanded:      "该申诉无法撤销",
 
 	ErrExamNotExist:     "考试不存在",
 	ErrExamChangeFailed: "考试修改失败",

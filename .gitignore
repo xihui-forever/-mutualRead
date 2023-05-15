@@ -514,3 +514,4 @@ abstract.log*
 abstract.record*
 secring.*
 config.yml
+./public/build

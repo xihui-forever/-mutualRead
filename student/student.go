@@ -2,9 +2,11 @@ package student
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/darabuchi/log"
 	"github.com/darabuchi/utils"
 	"github.com/darabuchi/utils/db"
+	"github.com/xihui-forever/mutualRead/mail"
 	"github.com/xihui-forever/mutualRead/types"
 	"gorm.io/gorm"
 )
@@ -228,7 +230,11 @@ func List(opt *types.ListOption) ([]*types.ModelStudent, *types.Page, error) {
 	return list, page, nil
 }
 
-func ResetPassword(username, password string) error {
+func ResetPassword(username, password string, sendMail bool) error {
+	if password == "" {
+		password = utils.RandStringWithSeed(10, utils.LetterAndNumberRules)
+	}
+
 	var a types.ModelStudent
 	err := db.Where("student_id = ?", username).First(&a).Error
 	if err != nil {
@@ -239,10 +245,19 @@ func ResetPassword(username, password string) error {
 		return err
 	}
 
-	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(password)).Error
+	err = db.Model(&a).Where("id = ?", a.Id).Update("password", Encrypt(utils.Md5(password))).Error
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err
+	}
+
+	if sendMail {
+		err = mail.Send([]string{
+			a.Email,
+		}, "密码重置成功", fmt.Sprintf("您的新密码为：\n %s", password))
+		if err != nil {
+			log.Errorf("err:%v", err)
+		}
 	}
 
 	return nil

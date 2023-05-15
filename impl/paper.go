@@ -18,6 +18,7 @@ func init() {
 	rpc.Post(types.CmdPathAddPaper, AddPaper, types.RoleTypeTeacher)
 	rpc.Post(types.CmdPathListPaperTeacher, ListPaperTeacher, types.RoleTypeTeacher)
 	rpc.Post(types.CmdPathListPaperExaminer, ListPaperExaminer, types.RoleTypeStudent)
+	rpc.Post(types.CmdPathListPaperReviewer, ListPaperReviewer, types.RoleTypeStudent)
 	rpc.Post(types.CmdPathGetPaperTeacher, GetPaperTeacher, types.RoleTypeTeacher)
 	rpc.Post(types.CmdPathGetPaperExaminer, GetPaperExaminer, types.RoleTypeStudent)
 	rpc.Post(types.CmdPathGetPaperReviewer, GetPaperReviewer, types.RoleTypeStudent)
@@ -132,6 +133,58 @@ func ListPaperExaminer(ctx *goon.Ctx, req *types.ListPaperExaminerReq) (*types.L
 
 	req.Options.Options = append(req.Options.Options, types.Option{
 		Key: types.ListPaper_OptionExaminerId,
+		Val: strconv.FormatUint(ctx.GetUint64(types.HeaderUserId), 10),
+	})
+
+	var err error
+	rsp.PaperList, rsp.Page, err = paper.ListPaper(req.Options)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return nil, err
+	}
+
+	if req.ShowExam && len(rsp.PaperList) > 0 {
+		var exams []*types.ModelExam
+		err = db.Where("id in (?)", utils.PluckUint64(rsp.PaperList, "ExamId")).Find(&exams).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		rsp.ExamMap = make(map[uint64]*types.ModelExam, len(exams))
+		for _, exam := range exams {
+			rsp.ExamMap[exam.Id] = exam
+		}
+	}
+
+	if req.ShowStudent && len(rsp.PaperList) > 0 {
+		var studentIds []uint64
+		studentIds = append(studentIds, utils.PluckUint64(rsp.PaperList, "ExaminerId")...)
+		studentIds = append(studentIds, utils.PluckUint64(rsp.PaperList, "ReviewerId")...)
+
+		studentIds = pie.Unique(studentIds)
+
+		var students []*types.ModelStudent
+		err = db.Where("id in (?)", studentIds).Find(&students).Error
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil, err
+		}
+
+		rsp.StudentMap = make(map[uint64]*types.ModelStudent, len(students))
+		for _, s := range students {
+			rsp.StudentMap[s.Id] = s
+		}
+	}
+
+	return &rsp, nil
+}
+
+func ListPaperReviewer(ctx *goon.Ctx, req *types.ListPaperExaminerReq) (*types.ListPaperExaminerRsp, error) {
+	var rsp types.ListPaperExaminerRsp
+
+	req.Options.Options = append(req.Options.Options, types.Option{
+		Key: types.ListPaper_OptionReviewerId,
 		Val: strconv.FormatUint(ctx.GetUint64(types.HeaderUserId), 10),
 	})
 

@@ -18,7 +18,7 @@ type LoginBaseRsp interface {
 
 var (
 	LoginHandlerMap  = map[int]func(username string, password string) (LoginBaseRsp, error){}
-	ResetPasswordMap = map[int]func(username, password string) error{}
+	ResetPasswordMap = map[int]func(username, password string, sendMail bool) error{}
 )
 
 func init() {
@@ -115,11 +115,12 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 			return types.CreateError(types.ErrLoginTypeNotFound)
 		}
 
-		err := logic(req.Username, req.Password)
+		err := logic(req.Username, req.Password, true)
 		if err != nil {
 			log.Errorf("err:%v", err)
 			return err
 		}
+
 	case types.RoleTypeStudent:
 		s, err := student.Get(ctx.GetUint64(types.HeaderUserId))
 		if err != nil {
@@ -127,7 +128,7 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 			return err
 		}
 
-		return student.ResetPassword(s.StudentId, req.Password)
+		return student.ResetPassword(s.StudentId, req.Password, false)
 	case types.RoleTypeTeacher:
 		s, err := teacher.Get(ctx.GetUint64(types.HeaderUserId))
 		if err != nil {
@@ -135,7 +136,7 @@ func ResetPassword(ctx *goon.Ctx, req *types.ResetPasswordReq) error {
 			return err
 		}
 
-		return teacher.ResetPassword(s.TeacherId, req.Password)
+		return teacher.ResetPassword(s.TeacherId, req.Password, false)
 	default:
 		ctx.SetStatusCode(403)
 		return types.CreateErrorWithMsg(-1, "user not have perm")
