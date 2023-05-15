@@ -343,6 +343,7 @@ type Cmd struct {
 var CmdList = []Cmd{}
 
 func Post(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodPost,
 		Path:   path,
@@ -352,6 +353,7 @@ func Post(path string, logic any, roles ...int) {
 }
 
 func Put(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodPut,
 		Path:   path,
@@ -361,6 +363,7 @@ func Put(path string, logic any, roles ...int) {
 }
 
 func Get(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodGet,
 		Path:   path,
@@ -370,6 +373,7 @@ func Get(path string, logic any, roles ...int) {
 }
 
 func Use(path string, logic any, roles ...int) {
+	path = "/api/" + strings.TrimPrefix(path, "/")
 	CmdList = append(CmdList, Cmd{
 		Method: goon.MethodUse,
 		Path:   path,
